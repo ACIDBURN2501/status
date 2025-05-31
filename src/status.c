@@ -57,7 +57,7 @@ status_set(u16 id)
         u16 bank = STATUS_BANK(id);
         u16 bit = STATUS_BIT(id);
         if (bank < NUM_STATUS_BANKS) {
-                fault_banks[bank] |= (1U << bit); // Default to fault class
+                fault_banks[bank] |= (u16)(1u << bit);
         }
 }
 
@@ -67,7 +67,7 @@ status_clear(u16 id)
         u16 bank = STATUS_BANK(id);
         u16 bit = STATUS_BIT(id);
         if (bank < NUM_STATUS_BANKS) {
-                fault_banks[bank] &= ~(1U << bit);
+                fault_banks[bank] &= ~(u16)(1u << bit);
         }
 }
 
@@ -77,7 +77,7 @@ status_toggle(u16 id)
         u16 bank = STATUS_BANK(id);
         u16 bit = STATUS_BIT(id);
         if (bank < NUM_STATUS_BANKS) {
-                fault_banks[bank] ^= (1U << bit);
+                fault_banks[bank] ^= (u16)(1u << bit);
         }
 }
 
@@ -89,7 +89,7 @@ status_is_set(u16 id)
         if (bank >= NUM_STATUS_BANKS) {
                 return false;
         }
-        return (fault_banks[bank] & (1U << bit)) != 0;
+        return (fault_banks[bank] & (u16)(1u << bit)) != 0;
 }
 
 bool
