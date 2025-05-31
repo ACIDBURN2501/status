@@ -28,7 +28,6 @@
 #define STATUS_PRIMITIVES_DEFINED
 
 typedef uint16_t u16;
-typedef uint32_t u32;
 typedef size_t usize;
 
 /**
@@ -36,7 +35,6 @@ typedef size_t usize;
  *    Static assertions to ensure type sizes are consistent on target platform.
  */
 _Static_assert(sizeof(u16) == 2, "u16 must be 16 bits");
-_Static_assert(sizeof(u32) == 4, "u32 must be 32 bits");
 
 #endif /* STATUS_PRIMITIVES_DEFINED */
 
