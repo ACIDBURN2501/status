@@ -87,6 +87,7 @@ static void
 test_status_any(void)
 {
         status_init();
+
         assert(status_any(STATUS_CLASS_WARNING) == false);
 
         status_set_fault(STATUS_ID_FAULT_UNDERVOLTAGE);
@@ -96,7 +97,7 @@ test_status_any(void)
         assert(status_any(STATUS_CLASS_FAULT) == false);
 
         status_set_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
-        assert(status_any(STATUS_CLASS_FAULT) == true);
+        assert(status_any(STATUS_CLASS_FAULT) == false);
 }
 
 static void
