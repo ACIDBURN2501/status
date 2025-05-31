@@ -45,9 +45,45 @@ _Static_assert(sizeof(s32) == 4, "s32 must be 32 bits");
 
 #endif /* STATUS_PRIMITIVES_DEFINED */
 
+/**
+ * @def STATUS_ENCODE
+ * @brief Encodes a status bank and bit index into a single `u16` ID.
+ *
+ * @param bank      Logical bank index (0-based). Typically used to group
+ *                  faults/warnings.
+ *
+ * @param bit       Bit position within the bank (0–31). Each bank can store up
+ *                  to 32 bits.
+ *
+ *
+ * @return          A compact 16-bit status ID, suitable for use in the
+ *                  `status` module.
+ *
+ * @note
+ *    The result must be less than `STATUS_ID_MAX`, as defined by the
+ *    application.
+ */
 #define STATUS_ENCODE(bank, bit) (((bank) << 8) | (bit))
-#define STATUS_BANK(id)          (((id) >> 8) & 0xFF)
-#define STATUS_BIT(id)           ((id) & 0xFF)
+
+/**
+ * @def STATUS_BANK
+ * @brief Extracts the bank number from an encoded status ID.
+ *
+ * @param id        A status ID encoded using `STATUS_ENCODE()`.
+ *
+ * @return          The bank index (0-based).
+ */
+#define STATUS_BANK(id)          (((id) >> 8) & 0xFFu)
+
+/**
+ * @def STATUS_BIT
+ * @brief Extracts the bit index from an encoded status ID.
+ *
+ * @param id        A status ID encoded using `STATUS_ENCODE()`.
+ *
+ * @return          The bit index (0–31) within the bank.
+ */
+#define STATUS_BIT(id)           ((id) & 0xFFu)
 
 /**
  * @brief Status class for categorization.
