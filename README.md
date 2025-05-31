@@ -24,8 +24,8 @@ ranging from 0–15. Runtime assertions are included to validate ID use.
 
 ## Integration
 ```c
-#include "status_ids.h"
 #include "status.h"
+#include "status_ids.h" /* User generated */
 ```
 
 Your project must define `status_ids.h` using the `STATUS_ENCODE(bank, bit)`
