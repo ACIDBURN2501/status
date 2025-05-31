@@ -15,8 +15,7 @@
 #include <stdint.h>
 
 /**
- * @brief
- *    Internal primitive type aliases used throughout the status module.
+ * @brief Internal primitive type aliases used throughout the status module.
  *
  * @details
  *    These typedefs provide more concise and readable type names
@@ -37,6 +36,19 @@ typedef size_t usize;
 _Static_assert(sizeof(u16) == 2, "u16 must be 16 bits");
 
 #endif /* STATUS_PRIMITIVES_DEFINED */
+
+/**
+ * @def NUM_STATUS_BANKS
+ * @brief The number of internal banks available for fault and warning bits.
+ *
+ * @details
+ *    Each bank holds 16 bits. Users must ensure that any status ID encoded
+ *    via `STATUS_ENCODE(bank, bit)` uses a `bank` value less than this.
+ *
+ * @note
+ *    This value must match the maximum `bank + 1` used in status_ids.h.
+ */
+#define NUM_STATUS_BANKS (8u)
 
 /**
  * @def STATUS_ENCODE

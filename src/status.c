@@ -7,8 +7,6 @@
  */
 #include "../include/status.h"
 
-#define NUM_STATUS_BANKS (4u)
-
 static u16 fault_banks[NUM_STATUS_BANKS];
 static u16 warning_banks[NUM_STATUS_BANKS];
 
