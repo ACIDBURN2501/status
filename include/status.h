@@ -45,6 +45,10 @@ _Static_assert(sizeof(s32) == 4, "s32 must be 32 bits");
 
 #endif /* STATUS_PRIMITIVES_DEFINED */
 
+#define STATUS_ENCODE(bank, bit) (((bank) << 8) | (bit))
+#define STATUS_BANK(id)          (((id) >> 8) & 0xFF)
+#define STATUS_BIT(id)           ((id) & 0xFF)
+
 /**
  * @brief Status class for categorization.
  */
