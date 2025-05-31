@@ -5,14 +5,11 @@
  *
  * @brief Implementation of core status tracking functionality.
  */
+
 #include "../include/status.h"
 
 static u16 fault_banks[NUM_STATUS_BANKS];
 static u16 warning_banks[NUM_STATUS_BANKS];
-
-/* Catch any config errors */
-_Static_assert(STATUS_BIT(0xFFFFu) <= 15u,
-               "STATUS_BIT macro must produce values in [0, 15]");
 
 void
 status_init(void)
@@ -32,8 +29,8 @@ get_bank_array(enum status_class cls)
 void
 status_set_warning(u16 id)
 {
-        u16 bank = STATUS_BANK(id);
-        u16 bit = STATUS_BIT(id);
+        u16 bank = status_bank(id);
+        u16 bit = status_bit(id);
         if (bank < NUM_STATUS_BANKS) {
                 warning_banks[bank] |= (u16)(1u << bit);
         }
@@ -42,8 +39,8 @@ status_set_warning(u16 id)
 void
 status_set_fault(u16 id)
 {
-        u16 bank = STATUS_BANK(id);
-        u16 bit = STATUS_BIT(id);
+        u16 bank = status_bank(id);
+        u16 bit = status_bit(id);
         if (bank < NUM_STATUS_BANKS) {
                 fault_banks[bank] |= (u16)(1u << bit);
         }
@@ -52,8 +49,8 @@ status_set_fault(u16 id)
 void
 status_clear_warning(u16 id)
 {
-        u16 bank = STATUS_BANK(id);
-        u16 bit = STATUS_BIT(id);
+        u16 bank = status_bank(id);
+        u16 bit = status_bit(id);
         if (bank < NUM_STATUS_BANKS) {
                 warning_banks[bank] &= ~(u16)(1u << bit);
         }
@@ -62,8 +59,8 @@ status_clear_warning(u16 id)
 void
 status_clear_fault(u16 id)
 {
-        u16 bank = STATUS_BANK(id);
-        u16 bit = STATUS_BIT(id);
+        u16 bank = status_bank(id);
+        u16 bit = status_bit(id);
         if (bank < NUM_STATUS_BANKS) {
                 fault_banks[bank] &= ~(u16)(1u << bit);
         }
@@ -72,8 +69,8 @@ status_clear_fault(u16 id)
 void
 status_toggle_warning(u16 id)
 {
-        u16 bank = STATUS_BANK(id);
-        u16 bit = STATUS_BIT(id);
+        u16 bank = status_bank(id);
+        u16 bit = status_bit(id);
         if (bank < NUM_STATUS_BANKS) {
                 warning_banks[bank] ^= (u16)(1u << bit);
         }
@@ -82,8 +79,8 @@ status_toggle_warning(u16 id)
 void
 status_toggle_fault(u16 id)
 {
-        u16 bank = STATUS_BANK(id);
-        u16 bit = STATUS_BIT(id);
+        u16 bank = status_bank(id);
+        u16 bit = status_bit(id);
         if (bank < NUM_STATUS_BANKS) {
                 fault_banks[bank] ^= (u16)(1u << bit);
         }
@@ -92,8 +89,8 @@ status_toggle_fault(u16 id)
 bool
 status_is_warning_set(u16 id)
 {
-        u16 bank = STATUS_BANK(id);
-        u16 bit = STATUS_BIT(id);
+        u16 bank = status_bank(id);
+        u16 bit = status_bit(id);
         if (bank >= NUM_STATUS_BANKS) {
                 return false;
         }
@@ -103,8 +100,8 @@ status_is_warning_set(u16 id)
 bool
 status_is_fault_set(u16 id)
 {
-        u16 bank = STATUS_BANK(id);
-        u16 bit = STATUS_BIT(id);
+        u16 bank = status_bank(id);
+        u16 bit = status_bit(id);
         if (bank >= NUM_STATUS_BANKS) {
                 return false;
         }

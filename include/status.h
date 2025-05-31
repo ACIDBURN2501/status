@@ -51,6 +51,11 @@ _Static_assert(sizeof(u16) == 2, "u16 must be 16 bits");
 #define NUM_STATUS_BANKS (8u)
 
 /**
+ * @name Status ID encoding helpers.
+ * @{
+ */
+
+/**
  * @def STATUS_ENCODE
  * @brief Encodes a status bank and bit index into a single 16-bit status ID.
  *
@@ -75,24 +80,35 @@ _Static_assert(sizeof(u16) == 2, "u16 must be 16 bits");
 #define STATUS_ENCODE(bank, bit) (((u16)(bank) << 4) | (((u16)(bit) & 0x0Fu))
 
 /**
- * @def STATUS_BANK
  * @brief Extracts the bank number from an encoded status ID.
  *
  * @param id        A status ID encoded using `STATUS_ENCODE()`.
  *
  * @return          The bank index (0-based).
  */
-#define STATUS_BANK(id) (((id) >> 4) & 0x0Fu)
+static inline u16
+status_bank(u16 id)
+{
+        return (u16)(id >> 4u);
+}
 
 /**
- * @def STATUS_BIT
  * @brief Extracts the bit index from an encoded status ID.
  *
  * @param id        A status ID encoded using `STATUS_ENCODE()`.
  *
  * @return          The bit index (0–15) within the bank.
  */
-#define STATUS_BIT(id)  ((id) & 0x0Fu)
+static inline u16
+status_bit(u16 id)
+{
+        return (u16)(id & 0x0Fu);
+}
+
+/**
+ * End: Status ID encoding helpers.
+ * @}
+ */
 
 /**
  * @brief Status class for categorization.
