@@ -29,8 +29,6 @@
 
 typedef uint16_t u16;
 typedef uint32_t u32;
-typedef int16_t s16;
-typedef int32_t s32;
 typedef size_t usize;
 
 /**
@@ -38,31 +36,33 @@ typedef size_t usize;
  *    Static assertions to ensure type sizes are consistent on target platform.
  */
 _Static_assert(sizeof(u16) == 2, "u16 must be 16 bits");
-_Static_assert(sizeof(s16) == 2, "s16 must be 16 bits");
 _Static_assert(sizeof(u32) == 4, "u32 must be 32 bits");
-_Static_assert(sizeof(s32) == 4, "s32 must be 32 bits");
 
 #endif /* STATUS_PRIMITIVES_DEFINED */
 
 /**
  * @def STATUS_ENCODE
- * @brief Encodes a status bank and bit index into a single `u16` ID.
+ * @brief Encodes a status bank and bit index into a single 16-bit status ID.
  *
  * @param bank      Logical bank index (0-based). Typically used to group
  *                  faults/warnings.
  *
- * @param bit       Bit position within the bank (0–31). Each bank can store up
- *                  to 32 bits.
+ * @param bit       Bit position within the bank (0–15). Each bank can store up
+ *                  to 16 bits.
  *
+ * @details
+ *    Each bank is assumed to store 16 bits. This macro encodes a `bank` and
+ *    `bit` index into a compact 16-bit ID used for indexing status registers.
+ *    The result can be passed to `status_set_fault()`, `status_clear_warn()`,
+ *    etc.
  *
  * @return          A compact 16-bit status ID, suitable for use in the
  *                  `status` module.
  *
  * @note
- *    The result must be less than `STATUS_ID_MAX`, as defined by the
- *    application.
+ *    The maximum bit index is 15. Higher values are masked off.
  */
-#define STATUS_ENCODE(bank, bit) (((bank) << 8) | (bit))
+#define STATUS_ENCODE(bank, bit) (((u16)(bank) << 4) | (((u16)(bit) & 0x0Fu))
 
 /**
  * @brief Status class for categorization.

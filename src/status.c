@@ -9,6 +9,9 @@
 
 #define NUM_STATUS_BANKS (4u)
 
+static u16 fault_banks[NUM_STATUS_BANKS];
+static u16 warning_banks[NUM_STATUS_BANKS];
+
 /**
  * @def STATUS_BANK
  * @brief Extracts the bank number from an encoded status ID.
@@ -17,7 +20,7 @@
  *
  * @return          The bank index (0-based).
  */
-#define STATUS_BANK(id)  (((id) >> 8) & 0xFFu)
+#define STATUS_BANK(id) (((id) >> 4) & 0x0Fu)
 
 /**
  * @def STATUS_BIT
@@ -25,12 +28,13 @@
  *
  * @param id        A status ID encoded using `STATUS_ENCODE()`.
  *
- * @return          The bit index (0–31) within the bank.
+ * @return          The bit index (0–15) within the bank.
  */
-#define STATUS_BIT(id)   ((id) & 0xFFu)
+#define STATUS_BIT(id)  ((id) & 0x0Fu)
 
-static u16 fault_banks[NUM_STATUS_BANKS];
-static u16 warning_banks[NUM_STATUS_BANKS];
+/* Catch any config errors */
+_Static_assert(STATUS_BIT(0xFFFFu) <= 15u,
+               "STATUS_BIT macro must produce values in [0, 15]");
 
 void
 status_init(void)
