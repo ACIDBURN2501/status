@@ -34,7 +34,13 @@ macro to create meaningful status IDs.
 ```c
 #define STATUS_ID_FAULT_OVERCURRENT   STATUS_ENCODE(0U, 0U)
 #define STATUS_ID_WARN_TEMP_HIGH      STATUS_ENCODE(1U, 0U)
-```
+
+status_set_fault(STATUS_ID_FAULT_OVERCURRENT);
+
+if (status_is_fault_set(STATUS_ID_FAULT_OVERCURRENT)) {
+    enter_fault_state();
+}
+}```
 
 An full example is provided by `examples/status_ids.h`.
 
