@@ -1,5 +1,7 @@
 # Status Module for Embedded Systems
 
+[![Run Unity Tests](https://github.com/ACIDBURN2501/status/actions/workflows/test.yml/badge.svg)](https://github.com/ACIDBURN2501/status/actions/workflows/test.yml)
+
 This module provides a lightweight status register system for embedded systems.
 It allows tracking of faults and warnings using banked bitfields, encoded as
 compact 16-bit status IDs. This design minimizes runtime overhead and is
