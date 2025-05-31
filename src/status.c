@@ -15,8 +15,8 @@ void
 status_init(void)
 {
         for (usize i = 0; i < NUM_STATUS_BANKS; ++i) {
-                fault_banks[i] = 0;
-                warning_banks[i] = 0;
+                fault_banks[i] = 0u;
+                warning_banks[i] = 0u;
         }
 }
 
