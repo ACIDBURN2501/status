@@ -78,24 +78,44 @@ enum status_class {
 void status_init(void);
 
 /**
- * @brief Set the given status bit.
+ * @brief Set the given warning status bit.
  */
-void status_set(u16 id);
+void status_set_warning(u16 id);
 
 /**
- * @brief Clear the given status bit.
+ * @brief Set the given fault status bit.
  */
-void status_clear(u16 id);
+void status_set_fault(u16 id);
 
 /**
- * @brief Toggle the given status bit.
+ * @brief Clear the given warning status bit.
  */
-void status_toggle(u16 id);
+void status_clear_warning(u16 id);
 
 /**
- * @brief Check whether a given status bit is set.
+ * @brief Clear the given fault status bit.
  */
-bool status_is_set(u16 id);
+void status_clear_fault(u16 id);
+
+/**
+ * @brief Toggle the given warning status bit.
+ */
+void status_toggle_warning(u16 id);
+
+/**
+ * @brief Toggle the given fault status bit.
+ */
+void status_toggle_fault(u16 id);
+
+/**
+ * @brief Check whether a given warning status bit is set.
+ */
+bool status_is_warning_set(u16 id);
+
+/**
+ * @brief Check whether a given fault status bit is set.
+ */
+bool status_is_fault_set(u16 id);
 
 /**
  * @brief Check whether any bit in the given class is set.

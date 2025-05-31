@@ -52,7 +52,17 @@ get_bank_array(enum status_class cls)
 }
 
 void
-status_set(u16 id)
+status_set_warning(u16 id)
+{
+        u16 bank = STATUS_BANK(id);
+        u16 bit = STATUS_BIT(id);
+        if (bank < NUM_STATUS_BANKS) {
+                warning_banks[bank] |= (u16)(1u << bit);
+        }
+}
+
+void
+status_set_fault(u16 id)
 {
         u16 bank = STATUS_BANK(id);
         u16 bit = STATUS_BIT(id);
@@ -62,7 +72,17 @@ status_set(u16 id)
 }
 
 void
-status_clear(u16 id)
+status_clear_warning(u16 id)
+{
+        u16 bank = STATUS_BANK(id);
+        u16 bit = STATUS_BIT(id);
+        if (bank < NUM_STATUS_BANKS) {
+                warning_banks[bank] &= ~(u16)(1u << bit);
+        }
+}
+
+void
+status_clear_fault(u16 id)
 {
         u16 bank = STATUS_BANK(id);
         u16 bit = STATUS_BIT(id);
@@ -72,7 +92,17 @@ status_clear(u16 id)
 }
 
 void
-status_toggle(u16 id)
+status_toggle_warning(u16 id)
+{
+        u16 bank = STATUS_BANK(id);
+        u16 bit = STATUS_BIT(id);
+        if (bank < NUM_STATUS_BANKS) {
+                warning_banks[bank] ^= (u16)(1u << bit);
+        }
+}
+
+void
+status_toggle_fault(u16 id)
 {
         u16 bank = STATUS_BANK(id);
         u16 bit = STATUS_BIT(id);
@@ -82,7 +112,18 @@ status_toggle(u16 id)
 }
 
 bool
-status_is_set(u16 id)
+status_is_warning_set(u16 id)
+{
+        u16 bank = STATUS_BANK(id);
+        u16 bit = STATUS_BIT(id);
+        if (bank >= NUM_STATUS_BANKS) {
+                return false;
+        }
+        return (warning_banks[bank] & (u16)(1u << bit)) != 0;
+}
+
+bool
+status_is_fault_set(u16 id)
 {
         u16 bank = STATUS_BANK(id);
         u16 bit = STATUS_BIT(id);
