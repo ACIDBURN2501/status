@@ -5,19 +5,19 @@
 #define STATUS_BANK(id)          (((id) >> 8) & 0xFF)
 #define STATUS_BIT(id)           ((id) & 0xFF)
 
-static uint16_t fault_banks[NUM_STATUS_BANKS];
-static uint16_t warning_banks[NUM_STATUS_BANKS];
+static u16 fault_banks[NUM_STATUS_BANKS];
+static u16 warning_banks[NUM_STATUS_BANKS];
 
 void
 status_init(void)
 {
-        for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
+        for (usize i = 0; i < NUM_STATUS_BANKS; ++i) {
                 fault_banks[i] = 0;
                 warning_banks[i] = 0;
         }
 }
 
-static inline uint16_t *
+static inline u16 *
 get_bank_array(enum status_class cls)
 {
         return (cls == STATUS_CLASS_FAULT) ? fault_banks : warning_banks;
@@ -26,8 +26,8 @@ get_bank_array(enum status_class cls)
 void
 status_set(u16 id)
 {
-        uint16_t bank = STATUS_BANK(id);
-        uint16_t bit = STATUS_BIT(id);
+        u16 bank = STATUS_BANK(id);
+        u16 bit = STATUS_BIT(id);
         if (bank < NUM_STATUS_BANKS) {
                 fault_banks[bank] |= (1U << bit); // Default to fault class
         }
@@ -36,8 +36,8 @@ status_set(u16 id)
 void
 status_clear(u16 id)
 {
-        uint16_t bank = STATUS_BANK(id);
-        uint16_t bit = STATUS_BIT(id);
+        u16 bank = STATUS_BANK(id);
+        u16 bit = STATUS_BIT(id);
         if (bank < NUM_STATUS_BANKS) {
                 fault_banks[bank] &= ~(1U << bit);
         }
@@ -46,8 +46,8 @@ status_clear(u16 id)
 void
 status_toggle(u16 id)
 {
-        uint16_t bank = STATUS_BANK(id);
-        uint16_t bit = STATUS_BIT(id);
+        u16 bank = STATUS_BANK(id);
+        u16 bit = STATUS_BIT(id);
         if (bank < NUM_STATUS_BANKS) {
                 fault_banks[bank] ^= (1U << bit);
         }
@@ -56,8 +56,8 @@ status_toggle(u16 id)
 bool
 status_is_set(u16 id)
 {
-        uint16_t bank = STATUS_BANK(id);
-        uint16_t bit = STATUS_BIT(id);
+        u16 bank = STATUS_BANK(id);
+        u16 bit = STATUS_BIT(id);
         if (bank >= NUM_STATUS_BANKS) {
                 return false;
         }
@@ -67,8 +67,8 @@ status_is_set(u16 id)
 bool
 status_any(enum status_class cls)
 {
-        const uint16_t *banks = get_bank_array(cls);
-        for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
+        const u16 *banks = get_bank_array(cls);
+        for (usize i = 0; i < NUM_STATUS_BANKS; ++i) {
                 if (banks[i] != 0) {
                         return true;
                 }
@@ -79,17 +79,17 @@ status_any(enum status_class cls)
 void
 status_clear_all(enum status_class cls)
 {
-        uint16_t *banks = get_bank_array(cls);
-        for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
+        u16 *banks = get_bank_array(cls);
+        for (usize i = 0; i < NUM_STATUS_BANKS; ++i) {
                 banks[i] = 0;
         }
 }
 
 void
-status_snapshot(enum status_class cls, uint16_t *dst, size_t len)
+status_snapshot(enum status_class cls, u16 *dst, usize len)
 {
-        const uint16_t *banks = get_bank_array(cls);
-        for (size_t i = 0; i < len && i < NUM_STATUS_BANKS; ++i) {
+        const u16 *banks = get_bank_array(cls);
+        for (usize i = 0; i < len && i < NUM_STATUS_BANKS; ++i) {
                 dst[i] = banks[i];
         }
 }
