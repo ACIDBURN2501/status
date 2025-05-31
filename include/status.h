@@ -75,18 +75,24 @@ _Static_assert(sizeof(u16) == 2, "u16 must be 16 bits");
 #define STATUS_ENCODE(bank, bit) (((u16)(bank) << 4) | (((u16)(bit) & 0x0Fu))
 
 /**
- * @brief Static assertion to ensure a status ID fits within defined bank
- *        limits.
+ * @def STATUS_BANK
+ * @brief Extracts the bank number from an encoded status ID.
  *
- * @param id        The encoded status ID to check.
+ * @param id        A status ID encoded using `STATUS_ENCODE()`.
  *
- * @note
- *    This assertion validates that the bank index used in the ID is less
- *    than `NUM_STATUS_BANKS`. It helps catch configuration errors early.
+ * @return          The bank index (0-based).
  */
-#define ASSERT_ID_FITS(id)                                                     \
-        _Static_assert(NUM_STATUS_BANKS > STATUS_BANK(id),                     \
-                       "Status ID bank exceeds NUM_STATUS_BANKS")
+#define STATUS_BANK(id) (((id) >> 4) & 0x0Fu)
+
+/**
+ * @def STATUS_BIT
+ * @brief Extracts the bit index from an encoded status ID.
+ *
+ * @param id        A status ID encoded using `STATUS_ENCODE()`.
+ *
+ * @return          The bit index (0–15) within the bank.
+ */
+#define STATUS_BIT(id)  ((id) & 0x0Fu)
 
 /**
  * @brief Status class for categorization.
