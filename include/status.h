@@ -3,9 +3,8 @@
  *
  * @file: status.h
  *
- * @brief
- *    Provides runtime logic for setting, clearing, and querying fault and
- *    warning status bits defined by the application.
+ * @brief Provides runtime logic for setting, clearing, and querying fault and
+ *        warning status bits defined by the application.
  */
 
 #ifndef STATUS_H
@@ -66,26 +65,6 @@ _Static_assert(sizeof(s32) == 4, "s32 must be 32 bits");
 #define STATUS_ENCODE(bank, bit) (((bank) << 8) | (bit))
 
 /**
- * @def STATUS_BANK
- * @brief Extracts the bank number from an encoded status ID.
- *
- * @param id        A status ID encoded using `STATUS_ENCODE()`.
- *
- * @return          The bank index (0-based).
- */
-#define STATUS_BANK(id)          (((id) >> 8) & 0xFFu)
-
-/**
- * @def STATUS_BIT
- * @brief Extracts the bit index from an encoded status ID.
- *
- * @param id        A status ID encoded using `STATUS_ENCODE()`.
- *
- * @return          The bit index (0–31) within the bank.
- */
-#define STATUS_BIT(id)           ((id) & 0xFFu)
-
-/**
  * @brief Status class for categorization.
  */
 enum status_class {
@@ -131,9 +110,9 @@ void status_clear_all(enum status_class cls);
 /**
  * @brief Snapshot all status registers into a destination buffer.
  *
- * @param cls The class of status.
- * @param dst Destination array (size must be at least NUM_STATUS_BANKS).
- * @param len Number of entries to write (must match NUM_STATUS_BANKS).
+ * @param cls       The class of status.
+ * @param dst       Destination array (size must be at least NUM_STATUS_BANKS).
+ * @param len       Number of entries to write (must match NUM_STATUS_BANKS).
  */
 void status_snapshot(enum status_class cls, u16 *dst, usize len);
 

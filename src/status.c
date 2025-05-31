@@ -1,9 +1,33 @@
+/*
+ * @copyright MIT
+ *
+ * @file: status.h
+ *
+ * @brief Implementation of core status tracking functionality.
+ */
 #include "../include/status.h"
 
-#define NUM_STATUS_BANKS         (4u)
-#define STATUS_ENCODE(bank, bit) (((bank) << 8) | (bit))
-#define STATUS_BANK(id)          (((id) >> 8) & 0xFF)
-#define STATUS_BIT(id)           ((id) & 0xFF)
+#define NUM_STATUS_BANKS (4u)
+
+/**
+ * @def STATUS_BANK
+ * @brief Extracts the bank number from an encoded status ID.
+ *
+ * @param id        A status ID encoded using `STATUS_ENCODE()`.
+ *
+ * @return          The bank index (0-based).
+ */
+#define STATUS_BANK(id)  (((id) >> 8) & 0xFFu)
+
+/**
+ * @def STATUS_BIT
+ * @brief Extracts the bit index from an encoded status ID.
+ *
+ * @param id        A status ID encoded using `STATUS_ENCODE()`.
+ *
+ * @return          The bit index (0–31) within the bank.
+ */
+#define STATUS_BIT(id)   ((id) & 0xFFu)
 
 static u16 fault_banks[NUM_STATUS_BANKS];
 static u16 warning_banks[NUM_STATUS_BANKS];
