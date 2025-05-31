@@ -24,3 +24,12 @@ status_dep = declare_dependency(
   link_with: status_lib,
   sources: status_headers
 )
+
+test_exe = executable(
+  'test_status',
+  ['tests/test_status.c'],
+  dependencies: [status_dep],
+  include_directories: status_inc
+)
+
+test('status module', test_exe)

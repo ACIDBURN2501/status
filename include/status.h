@@ -48,7 +48,7 @@ _Static_assert(sizeof(u16) == 2, "u16 must be 16 bits");
  * @note
  *    This value must match the maximum `bank + 1` used in status_ids.h.
  */
-#define NUM_STATUS_BANKS (8u)
+#define NUM_STATUS_BANKS         (8u)
 
 /**
  * @name Status ID encoding helpers.
@@ -77,7 +77,7 @@ _Static_assert(sizeof(u16) == 2, "u16 must be 16 bits");
  * @note
  *    The maximum bit index is 15. Higher values are masked off.
  */
-#define STATUS_ENCODE(bank, bit) (((u16)(bank) << 4) | (((u16)(bit) & 0x0Fu))
+#define STATUS_ENCODE(bank, bit) (((u16)(bank) << 4U) | ((u16)(bit) & 0x0FU))
 
 /**
  * @brief Extracts the bank number from an encoded status ID.
@@ -89,7 +89,7 @@ _Static_assert(sizeof(u16) == 2, "u16 must be 16 bits");
 static inline u16
 status_bank(u16 id)
 {
-        return (u16)(id >> 4u);
+        return (u16)(id >> 4);
 }
 
 /**
@@ -102,7 +102,7 @@ status_bank(u16 id)
 static inline u16
 status_bit(u16 id)
 {
-        return (u16)(id & 0x0Fu);
+        return (u16)(id & 0x0F);
 }
 
 /**
