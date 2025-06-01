@@ -56,7 +56,8 @@ meson compile -C builddir
 
 ## Running Unit Tests with Meson
 
-Ensure Unity is available via `subprojects/unity.wrap` (already configured).
+The project has a small suite of unit tests that can be ran using the following
+command:
 
 ```bash
 meson test -C builddir --print-errorlogs
