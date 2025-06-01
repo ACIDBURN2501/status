@@ -20,7 +20,7 @@ ranging from 0–15. Runtime assertions are included to validate ID use.
 - Runtime assertions for ID safety (bank/bit bounds)
 - Explicit API separation for fault vs warning logic
 - `status_any()` to check for any active condition
-- `status_reset_all()` and `status_clear_all()` support
+- `status_clear_all()` to clear all faults or warnings
 
 ## Integration
 ```c
