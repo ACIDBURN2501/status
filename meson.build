@@ -5,6 +5,11 @@ project(
   default_options: ['c_std=c11']
 )
 
+# Add DEBUG define only in debug builds
+if get_option('buildtype') == 'debug'
+  add_project_arguments('-DDEBUG', language: 'c')
+endif
+
 status_sources = files('src/status.c')
 
 # Only install the real public header

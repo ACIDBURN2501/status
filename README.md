@@ -54,6 +54,9 @@ meson setup builddir
 meson compile -C builddir
 ```
 
+The `--buildtype=debug` can be included for the setup step to enable the debug
+version of the build.
+
 ## Running Unit Tests with Meson
 
 The project has a small suite of unit tests that can be ran using the following

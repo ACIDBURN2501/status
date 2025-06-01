@@ -15,11 +15,15 @@
 #include <stdint.h>
 
 #ifndef ASSERT
+#ifdef DEBUG
 #define ASSERT(c)                                                              \
         do {                                                                   \
                 if (!(c))                                                      \
                         __builtin_trap();                                      \
         } while (0)
+#else
+#define ASSERT(c) ((void)0)
+#endif
 #endif
 
 /**
