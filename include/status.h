@@ -14,6 +14,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifndef ASSERT
+#define ASSERT(c)                                                              \
+        do {                                                                   \
+                if (!(c))                                                      \
+                        __builtin_trap();                                      \
+        } while (0)
+#endif
+
 /**
  * @brief Internal primitive type aliases used throughout the status module.
  *
