@@ -31,7 +31,7 @@ static inline void
 assert_valid(u16 id)
 {
         ASSERT(status_bank(id) < NUM_STATUS_BANKS);
-        ASSERT(status_bit(id) < 16U);
+        ASSERT(status_bit(id) < 16u);
 }
 
 void
