@@ -37,7 +37,8 @@
 #ifdef STATUS_U16_TYPE
 typedef uint16_t u16;
 #endif
-ifdef STATUS_USIZE_TYPE typedef size_t usize;
+#ifdef STATUS_USIZE_TYPE
+typedef size_t usize;
 #endif
 
 /**
