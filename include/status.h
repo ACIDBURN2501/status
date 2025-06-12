@@ -27,32 +27,24 @@
 #endif
 
 /**
- * @brief Internal primitive type aliases used throughout the status module.
+ * @brief Optional primitive type aliases used throughout the status module.
  *
- * @details
- *    These typedefs provide more concise and readable type names
- *    suitable for embedded applications. They are defined here to
- *    avoid dependencies on project-wide typedef headers and are
- *    protected by include guards to prevent redefinition.
+ * @note
+ *    These will only be defined if the user explicity enables them by defining
+ *    the `STATUS_U16_TYPE` or `STATUS_USIZE_TYPE`. The avoids conflicts with
+ *    global project typedefs.
  */
-#ifndef PRIMITIVES_DEFINED
-#define PRIMITIVES_DEFINED
-
+#ifdef STATUS_U16_TYPE
 typedef uint16_t u16;
-typedef size_t usize;
-
-#endif /* PRIMITIVES_DEFINED */
-
-#ifndef STATUS_PRIMITIVES_DEFINED
-#define STATUS_PRIMITIVES_DEFINED
+#endif
+ifdef STATUS_USIZE_TYPE typedef size_t usize;
+#endif
 
 /**
  * @brief
  *    Static assertions to ensure type sizes are consistent on target platform.
  */
 _Static_assert(sizeof(u16) == 2, "u16 must be 16 bits");
-
-#endif /* STATUS_PRIMITIVES_DEFINED */
 
 /**
  * @def NUM_STATUS_BANKS

@@ -5,6 +5,9 @@ project(
   default_options: ['c_std=c11']
 )
 
+# Add type alias defines when building as standalone or for tests
+add_project_arguments('-DSTATUS_U16_TYPE', '-DSTATUS_USIZE_TYPE', language: 'c')
+
 # Add DEBUG define only in debug builds
 if get_option('buildtype') == 'debug'
   add_project_arguments('-DDEBUG', language: 'c')
