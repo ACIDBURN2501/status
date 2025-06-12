@@ -35,11 +35,16 @@
  *    avoid dependencies on project-wide typedef headers and are
  *    protected by include guards to prevent redefinition.
  */
-#ifndef STATUS_PRIMITIVES_DEFINED
-#define STATUS_PRIMITIVES_DEFINED
+#ifndef PRIMITIVES_DEFINED
+#define PRIMITIVES_DEFINED
 
 typedef uint16_t u16;
 typedef size_t usize;
+
+#endif /* PRIMITIVES_DEFINED */
+
+#ifndef STATUS_PRIMITIVES_DEFINED
+#define STATUS_PRIMITIVES_DEFINED
 
 /**
  * @brief
