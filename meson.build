@@ -24,7 +24,6 @@ status_lib = static_library(
   'status',
   status_sources,
   include_directories: status_inc,
-  pic: true
 )
 
 status_dep = declare_dependency(
