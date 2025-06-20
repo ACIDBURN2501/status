@@ -15,13 +15,34 @@
 #include <stdint.h>
 
 #ifndef ASSERT
-#ifdef DEBUG
+#if defined(DEBUG)
+#if defined(__GNUC__) || defined(__clang__)
+// Use GCC/Clang trap
 #define ASSERT(c)                                                              \
         do {                                                                   \
                 if (!(c))                                                      \
                         __builtin_trap();                                      \
         } while (0)
+#elif defined(__TI_COMPILER_VERSION__)
+// TI C2000 workaround: enter infinite loop
+#define ASSERT(c)                                                              \
+        do {                                                                   \
+                if (!(c)) {                                                    \
+                        for (;;) { /* trap */                                  \
+                        }                                                      \
+                }                                                              \
+        } while (0)
 #else
+// Generic fallback
+#define ASSERT(c)                                                              \
+        do {                                                                   \
+                if (!(c)) {                                                    \
+                        for (;;) {}                                            \
+                }                                                              \
+        } while (0)
+#endif
+#else
+// Assertions disabled in non-debug builds
 #define ASSERT(c) ((void)0)
 #endif
 #endif
