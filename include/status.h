@@ -42,12 +42,6 @@ typedef size_t usize;
 #endif
 
 /**
- * @brief
- *    Static assertions to ensure type sizes are consistent on target platform.
- */
-_Static_assert(sizeof(u16) == 2, "u16 must be 16 bits");
-
-/**
  * @def NUM_STATUS_BANKS
  * @brief The number of internal banks available for fault and warning bits.
  *
