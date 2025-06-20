@@ -48,21 +48,6 @@
 #endif
 
 /**
- * @brief Optional primitive type aliases used throughout the status module.
- *
- * @note
- *    These will only be defined if the user explicity enables them by defining
- *    the `STATUS_U16_TYPE` or `STATUS_USIZE_TYPE`. The avoids conflicts with
- *    global project typedefs.
- */
-#ifdef STATUS_U16_TYPE
-typedef uint16_t u16;
-#endif
-#ifdef STATUS_USIZE_TYPE
-typedef size_t usize;
-#endif
-
-/**
  * @def NUM_STATUS_BANKS
  * @brief The number of internal banks available for fault and warning bits.
  *
@@ -73,7 +58,7 @@ typedef size_t usize;
  * @note
  *    This value must match the maximum `bank + 1` used in status_ids.h.
  */
-#define NUM_STATUS_BANKS         (16u)
+#define NUM_STATUS_BANKS (16u)
 
 /**
  * @name Status ID encoding helpers.
@@ -102,7 +87,8 @@ typedef size_t usize;
  * @note
  *    The maximum bit index is 15. Higher values are masked off.
  */
-#define STATUS_ENCODE(bank, bit) (((u16)(bank) << 4u) | ((u16)(bit) & 0x0Fu))
+#define STATUS_ENCODE(bank, bit)                                               \
+        (((uint16_t)(bank) << 4u) | ((uint16_t)(bit) & 0x0Fu))
 
 /**
  * @brief Extracts the bank number from an encoded status ID.
@@ -111,10 +97,10 @@ typedef size_t usize;
  *
  * @return          The bank index (0-based).
  */
-static inline u16
-status_bank(u16 id)
+static inline uint16_t
+status_bank(uint16_t id)
 {
-        return (u16)(id >> 4u);
+        return (uint16_t)(id >> 4u);
 }
 
 /**
@@ -124,10 +110,10 @@ status_bank(u16 id)
  *
  * @return          The bit index (0–15) within the bank.
  */
-static inline u16
-status_bit(u16 id)
+static inline uint16_t
+status_bit(uint16_t id)
 {
-        return (u16)(id & 0x0Fu);
+        return (uint16_t)(id & 0x0Fu);
 }
 
 /**
@@ -151,42 +137,42 @@ void status_init(void);
 /**
  * @brief Set the given warning status bit.
  */
-void status_set_warning(u16 id);
+void status_set_warning(uint16_t id);
 
 /**
  * @brief Set the given fault status bit.
  */
-void status_set_fault(u16 id);
+void status_set_fault(uint16_t id);
 
 /**
  * @brief Clear the given warning status bit.
  */
-void status_clear_warning(u16 id);
+void status_clear_warning(uint16_t id);
 
 /**
  * @brief Clear the given fault status bit.
  */
-void status_clear_fault(u16 id);
+void status_clear_fault(uint16_t id);
 
 /**
  * @brief Toggle the given warning status bit.
  */
-void status_toggle_warning(u16 id);
+void status_toggle_warning(uint16_t id);
 
 /**
  * @brief Toggle the given fault status bit.
  */
-void status_toggle_fault(u16 id);
+void status_toggle_fault(uint16_t id);
 
 /**
  * @brief Check whether a given warning status bit is set.
  */
-bool status_is_warning_set(u16 id);
+bool status_is_warning_set(uint16_t id);
 
 /**
  * @brief Check whether a given fault status bit is set.
  */
-bool status_is_fault_set(u16 id);
+bool status_is_fault_set(uint16_t id);
 
 /**
  * @brief Check whether any bit in the given class is set.
@@ -205,6 +191,6 @@ void status_clear_all(enum status_class cls);
  * @param dst       Destination array (size must be at least NUM_STATUS_BANKS).
  * @param len       Number of entries to write (must match NUM_STATUS_BANKS).
  */
-void status_snapshot(enum status_class cls, u16 *dst, usize len);
+void status_snapshot(enum status_class cls, uint16_t *dst, size_t len);
 
 #endif // STATUS_H

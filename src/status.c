@@ -10,8 +10,8 @@
 
 #include "../include/status.h"
 
-static u16 fault_banks[NUM_STATUS_BANKS];
-static u16 warning_banks[NUM_STATUS_BANKS];
+static uint16_t fault_banks[NUM_STATUS_BANKS];
+static uint16_t warning_banks[NUM_STATUS_BANKS];
 
 /**
  * @brief
@@ -28,7 +28,7 @@ static u16 warning_banks[NUM_STATUS_BANKS];
  *    This is used by all public status APIs to enforce safety at runtime.
  */
 static inline void
-assert_valid(u16 id)
+assert_valid(uint16_t id)
 {
         ASSERT(status_bank(id) < NUM_STATUS_BANKS);
         ASSERT(status_bit(id) < 16u);
@@ -37,127 +37,127 @@ assert_valid(u16 id)
 void
 status_init(void)
 {
-        for (usize i = 0; i < NUM_STATUS_BANKS; ++i) {
+        for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
                 fault_banks[i] = 0u;
                 warning_banks[i] = 0u;
         }
 }
 
-static inline u16 *
+static inline uint16_t *
 get_bank_array(enum status_class cls)
 {
         return (cls == STATUS_CLASS_FAULT) ? fault_banks : warning_banks;
 }
 
 void
-status_set_warning(u16 id)
+status_set_warning(uint16_t id)
 {
         assert_valid(id);
-        u16 bank = status_bank(id);
-        u16 bit = status_bit(id);
+        uint16_t bank = status_bank(id);
+        uint16_t bit = status_bit(id);
 
         if (bank < NUM_STATUS_BANKS) {
-                warning_banks[bank] |= (u16)(1u << bit);
+                warning_banks[bank] |= (uint16_t)(1u << bit);
         }
 }
 
 void
-status_set_fault(u16 id)
+status_set_fault(uint16_t id)
 {
         assert_valid(id);
-        u16 bank = status_bank(id);
-        u16 bit = status_bit(id);
+        uint16_t bank = status_bank(id);
+        uint16_t bit = status_bit(id);
         if (bank < NUM_STATUS_BANKS) {
-                fault_banks[bank] |= (u16)(1u << bit);
+                fault_banks[bank] |= (uint16_t)(1u << bit);
         }
 }
 
 void
-status_clear_warning(u16 id)
+status_clear_warning(uint16_t id)
 {
         assert_valid(id);
-        u16 bank = status_bank(id);
-        u16 bit = status_bit(id);
+        uint16_t bank = status_bank(id);
+        uint16_t bit = status_bit(id);
 
         if (bank < NUM_STATUS_BANKS) {
-                warning_banks[bank] &= ~(u16)(1u << bit);
+                warning_banks[bank] &= ~(uint16_t)(1u << bit);
         }
 }
 
 void
-status_clear_fault(u16 id)
+status_clear_fault(uint16_t id)
 {
         assert_valid(id);
-        u16 bank = status_bank(id);
-        u16 bit = status_bit(id);
+        uint16_t bank = status_bank(id);
+        uint16_t bit = status_bit(id);
 
         if (bank < NUM_STATUS_BANKS) {
-                fault_banks[bank] &= ~(u16)(1u << bit);
+                fault_banks[bank] &= ~(uint16_t)(1u << bit);
         }
 }
 
 void
-status_toggle_warning(u16 id)
+status_toggle_warning(uint16_t id)
 {
         assert_valid(id);
-        u16 bank = status_bank(id);
-        u16 bit = status_bit(id);
+        uint16_t bank = status_bank(id);
+        uint16_t bit = status_bit(id);
 
         if (bank < NUM_STATUS_BANKS) {
-                warning_banks[bank] ^= (u16)(1u << bit);
+                warning_banks[bank] ^= (uint16_t)(1u << bit);
         }
 }
 
 void
-status_toggle_fault(u16 id)
+status_toggle_fault(uint16_t id)
 {
         assert_valid(id);
-        u16 bank = status_bank(id);
-        u16 bit = status_bit(id);
+        uint16_t bank = status_bank(id);
+        uint16_t bit = status_bit(id);
 
         if (bank < NUM_STATUS_BANKS) {
-                fault_banks[bank] ^= (u16)(1u << bit);
+                fault_banks[bank] ^= (uint16_t)(1u << bit);
         }
 }
 
 bool
-status_is_warning_set(u16 id)
+status_is_warning_set(uint16_t id)
 {
         assert_valid(id);
-        u16 bank = status_bank(id);
-        u16 bit = status_bit(id);
+        uint16_t bank = status_bank(id);
+        uint16_t bit = status_bit(id);
 
         if (bank >= NUM_STATUS_BANKS) {
                 return false;
         }
 
-        return (warning_banks[bank] & (u16)(1u << bit)) != 0;
+        return (warning_banks[bank] & (uint16_t)(1u << bit)) != 0;
 }
 
 bool
-status_is_fault_set(u16 id)
+status_is_fault_set(uint16_t id)
 {
         assert_valid(id);
-        u16 bank = status_bank(id);
-        u16 bit = status_bit(id);
+        uint16_t bank = status_bank(id);
+        uint16_t bit = status_bit(id);
 
         if (bank >= NUM_STATUS_BANKS) {
                 return false;
         }
 
-        return (fault_banks[bank] & (u16)(1u << bit)) != 0;
+        return (fault_banks[bank] & (uint16_t)(1u << bit)) != 0;
 }
 
 bool
 status_any(enum status_class cls)
 {
-        const u16 *banks = get_bank_array(cls);
+        const uint16_t *banks = get_bank_array(cls);
 
         if (banks == NULL) {
                 return false;
         }
 
-        for (usize i = 0; i < NUM_STATUS_BANKS; ++i) {
+        for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
                 if (banks[i] != 0) {
                         return true;
                 }
@@ -168,22 +168,22 @@ status_any(enum status_class cls)
 void
 status_clear_all(enum status_class cls)
 {
-        u16 *banks = get_bank_array(cls);
+        uint16_t *banks = get_bank_array(cls);
 
         if (banks == NULL) {
                 return;
         }
 
-        for (usize i = 0; i < NUM_STATUS_BANKS; ++i) {
+        for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
                 banks[i] = 0;
         }
 }
 
 void
-status_snapshot(enum status_class cls, u16 *dst, usize len)
+status_snapshot(enum status_class cls, uint16_t *dst, size_t len)
 {
-        const u16 *banks = get_bank_array(cls);
-        for (usize i = 0; i < len && i < NUM_STATUS_BANKS; ++i) {
+        const uint16_t *banks = get_bank_array(cls);
+        for (size_t i = 0; i < len && i < NUM_STATUS_BANKS; ++i) {
                 dst[i] = banks[i];
         }
 }
