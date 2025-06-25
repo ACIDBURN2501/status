@@ -1,12 +1,4 @@
-project(
-  'status',
-  'c',
-  version: '0.1.0',
-  default_options: ['c_std=c11']
-)
-
-# Add type alias defines when building as standalone or for tests
-add_project_arguments('-DSTATUS_U16_TYPE', '-DSTATUS_USIZE_TYPE', language: 'c')
+project('status', 'c', version: '0.1.0', default_options: ['c_std=c11'])
 
 # Add DEBUG define only in debug builds
 if get_option('buildtype') == 'debug'
@@ -29,14 +21,14 @@ status_lib = static_library(
 status_dep = declare_dependency(
   include_directories: status_inc,
   link_with: status_lib,
-  sources: status_headers
+  sources: status_headers,
 )
 
 test_exe = executable(
   'test_status',
   ['tests/test_status.c'],
   dependencies: [status_dep],
-  include_directories: status_inc
+  include_directories: status_inc,
 )
 
 test('status module', test_exe)
