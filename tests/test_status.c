@@ -135,17 +135,35 @@ test_status_any(void)
 }
 
 static void
-test_status_clear_all(void)
+test_status_clear_all_faults(void)
 {
-        status_init();
-
         status_set_fault(STATUS_ID_FAULT_OVERCURRENT);
-        status_set_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
-        assert(status_any(STATUS_CLASS_WARNING) == true);
+        assert(status_any(STATUS_CLASS_FAULT) == true);
 
         status_clear_all(STATUS_CLASS_FAULT);
         assert(status_any(STATUS_CLASS_FAULT) == false);
 }
+
+static void
+test_status_clear_all_warnings(void)
+{
+        status_set_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
+        assert(status_any(STATUS_CLASS_WARNING) == true);
+
+        status_clear_all(STATUS_CLASS_WARNING);
+        assert(status_any(STATUS_CLASS_WARNING) == false);
+}
+
+static void
+test_status_clear_all_info(void)
+{
+        status_set_info(STATUS_ID_INFO_CAN_ACTIVE);
+        assert(status_any(STATUS_CLASS_INFO) == true);
+
+        status_clear_all(STATUS_CLASS_INFO);
+        assert(status_any(STATUS_CLASS_INFO) == false);
+}
+
 int
 main(void)
 {
@@ -159,6 +177,8 @@ main(void)
         test_is_fault_set();
         test_is_info_set();
         test_status_any();
-        test_status_clear_all();
+        test_status_clear_all_faults();
+        test_status_clear_all_warnings();
+        test_status_clear_all_info();
         return EXIT_SUCCESS;
 }
