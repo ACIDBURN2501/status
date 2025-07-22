@@ -13,9 +13,17 @@
 
 #include "../include/status.h"
 
+/* ---------------- Configuration ------------------------------------------- */
+
 static uint16_t fault_banks[NUM_STATUS_BANKS];
 static uint16_t warning_banks[NUM_STATUS_BANKS];
 static uint16_t info_banks[NUM_STATUS_BANKS];
+
+static uint16_t last_fault_id = 0xFFFF;
+static uint16_t last_warning_id = 0xFFFF;
+static uint16_t last_info_id = 0xFFFF;
+
+/* ---------------- Helpers ------------------------------------------------- */
 
 /**
  * @brief
@@ -63,6 +71,11 @@ _set(uint16_t id, enum status_class cls)
 
         if (bank < NUM_STATUS_BANKS) {
                 b[bank] |= (uint16_t)(1u << bit);
+                switch (cls) {
+                case STATUS_CLASS_FAULT: last_fault_id = id; break;
+                case STATUS_CLASS_WARNING: last_warning_id = id; break;
+                case STATUS_CLASS_INFO: last_info_id = id; break;
+                }
         }
 }
 
@@ -119,12 +132,17 @@ _is_set(uint16_t id, enum status_class cls)
         return (b[bank] & (uint16_t)(1u << bit)) != 0;
 }
 
+/* ---------------  Public Interface ---------------------------------------- */
+
 void
 status_init(void)
 {
         memset(fault_banks, 0u, sizeof(fault_banks));
         memset(warning_banks, 0u, sizeof(warning_banks));
         memset(info_banks, 0u, sizeof(info_banks));
+        last_fault_id = 0xFFFF;
+        last_warning_id = 0xFFFF;
+        last_info_id = 0xFFFF;
 }
 
 void
@@ -228,6 +246,24 @@ status_clear_all(enum status_class cls)
         for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
                 banks[i] = 0;
         }
+}
+
+uint16_t
+status_last_fault(void)
+{
+        return last_fault_id;
+}
+
+uint16_t
+status_last_warning(void)
+{
+        return last_warning_id;
+}
+
+uint16_t
+status_last_info(void)
+{
+        return last_info_id;
 }
 
 void

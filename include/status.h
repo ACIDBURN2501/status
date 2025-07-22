@@ -206,6 +206,21 @@ bool status_any(enum status_class cls);
 void status_clear_all(enum status_class cls);
 
 /**
+ * @brief Get the last status ID that was set.
+ */
+uint16_t status_last_fault(void);
+
+/**
+ * @brief Get the last warning ID that was set.
+ */
+uint16_t status_last_warning(void);
+
+/**
+ * @brief Get the last info ID that was set.
+ */
+uint16_t status_last_info(void);
+
+/**
  * @brief Snapshot all status registers into a destination buffer.
  *
  * @param cls       The class of status.
