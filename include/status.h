@@ -23,17 +23,8 @@
                 if (!(c))                                                      \
                         __builtin_trap();                                      \
         } while (0)
-#elif defined(__TI_COMPILER_VERSION__)
-// TI C2000 workaround: enter infinite loop
-#define ASSERT(c)                                                              \
-        do {                                                                   \
-                if (!(c)) {                                                    \
-                        for (;;) { /* trap */                                  \
-                        }                                                      \
-                }                                                              \
-        } while (0)
 #else
-// Generic fallback
+// Generic fallback (TI C2000 etc)
 #define ASSERT(c)                                                              \
         do {                                                                   \
                 if (!(c)) {                                                    \
