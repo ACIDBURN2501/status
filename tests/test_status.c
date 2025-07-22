@@ -40,6 +40,18 @@ test_warn_set_and_clear(void)
 }
 
 static void
+test_info_set_and_clear(void)
+{
+        setUp();
+
+        status_set_info(STATUS_ID_INFO_AC_LIVE);
+        assert(status_is_info_set(STATUS_ID_INFO_AC_LIVE) == true);
+
+        status_clear_info(STATUS_ID_INFO_AC_LIVE);
+        assert(status_is_info_set(STATUS_ID_INFO_AC_LIVE) == false);
+}
+
+static void
 test_toggle_fault(void)
 {
         status_init();
@@ -64,6 +76,18 @@ test_toggle_warn(void)
 }
 
 static void
+test_toggle_info(void)
+{
+        setUp();
+
+        assert(status_is_info_set(STATUS_ID_INFO_CAN_ACTIVE) == false);
+        status_toggle_info(STATUS_ID_INFO_CAN_ACTIVE);
+        assert(status_is_info_set(STATUS_ID_INFO_CAN_ACTIVE) == true);
+        status_toggle_info(STATUS_ID_INFO_CAN_ACTIVE);
+        assert(status_is_info_set(STATUS_ID_INFO_CAN_ACTIVE) == false);
+}
+
+static void
 test_is_fault_set(void)
 {
         status_init();
@@ -84,6 +108,16 @@ test_is_warn_set(void)
 }
 
 static void
+test_is_info_set(void)
+{
+        setUp();
+
+        status_set_info(STATUS_ID_INFO_TEMP_CHANGING);
+        assert(status_is_info_set(STATUS_ID_INFO_TEMP_CHANGING) == true);
+        assert(status_is_info_set(STATUS_ID_INFO_AC_LIVE) == false);
+}
+
+static void
 test_status_any(void)
 {
         status_init();
@@ -101,27 +135,74 @@ test_status_any(void)
 }
 
 static void
-test_status_clear_all(void)
+test_status_clear_all_faults(void)
 {
-        status_init();
-
         status_set_fault(STATUS_ID_FAULT_OVERCURRENT);
-        status_set_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
-        assert(status_any(STATUS_CLASS_WARNING) == true);
+        assert(status_any(STATUS_CLASS_FAULT) == true);
 
         status_clear_all(STATUS_CLASS_FAULT);
         assert(status_any(STATUS_CLASS_FAULT) == false);
 }
+
+static void
+test_status_clear_all_warnings(void)
+{
+        status_set_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
+        assert(status_any(STATUS_CLASS_WARNING) == true);
+
+        status_clear_all(STATUS_CLASS_WARNING);
+        assert(status_any(STATUS_CLASS_WARNING) == false);
+}
+
+static void
+test_status_clear_all_info(void)
+{
+        status_set_info(STATUS_ID_INFO_CAN_ACTIVE);
+        assert(status_any(STATUS_CLASS_INFO) == true);
+
+        status_clear_all(STATUS_CLASS_INFO);
+        assert(status_any(STATUS_CLASS_INFO) == false);
+}
+
+static void
+test_status_last_fault(void)
+{
+        status_set_fault(STATUS_ID_FAULT_CAN_TIMEOUT);
+        assert(status_last_fault() == STATUS_ID_FAULT_CAN_TIMEOUT);
+}
+
+static void
+test_status_last_warning(void)
+{
+        status_set_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
+        assert(status_last_warning() == STATUS_ID_WARN_TEMP_NEAR_LIMIT);
+}
+
+static void
+test_status_last_info(void)
+{
+        status_set_info(STATUS_ID_INFO_CAN_ACTIVE);
+        assert(status_last_info() == STATUS_ID_INFO_CAN_ACTIVE);
+}
+
 int
 main(void)
 {
         test_fault_set_and_clear();
         test_warn_set_and_clear();
+        test_info_set_and_clear();
         test_toggle_warn();
         test_toggle_fault();
+        test_toggle_info();
         test_is_warn_set();
         test_is_fault_set();
+        test_is_info_set();
         test_status_any();
-        test_status_clear_all();
+        test_status_clear_all_faults();
+        test_status_clear_all_warnings();
+        test_status_clear_all_info();
+        test_status_last_fault();
+        test_status_last_warning();
+        test_status_last_info();
         return EXIT_SUCCESS;
 }
