@@ -127,6 +127,7 @@ status_bit(uint16_t id)
 enum status_class {
         STATUS_CLASS_FAULT = 0,
         STATUS_CLASS_WARNING = 1,
+        STATUS_CLASS_INFO = 2,
 };
 
 /**
@@ -145,6 +146,11 @@ void status_set_warning(uint16_t id);
 void status_set_fault(uint16_t id);
 
 /**
+ * @brief Set the given info status bit.
+ */
+void status_set_info(uint16_t id);
+
+/**
  * @brief Clear the given warning status bit.
  */
 void status_clear_warning(uint16_t id);
@@ -153,6 +159,11 @@ void status_clear_warning(uint16_t id);
  * @brief Clear the given fault status bit.
  */
 void status_clear_fault(uint16_t id);
+
+/**
+ * @brief Clear the given info status bit.
+ */
+void status_clear_info(uint16_t id);
 
 /**
  * @brief Toggle the given warning status bit.
@@ -165,6 +176,11 @@ void status_toggle_warning(uint16_t id);
 void status_toggle_fault(uint16_t id);
 
 /**
+ * @brief Toggle the given info status bit.
+ */
+void status_toggle_info(uint16_t id);
+
+/**
  * @brief Check whether a given warning status bit is set.
  */
 bool status_is_warning_set(uint16_t id);
@@ -173,6 +189,11 @@ bool status_is_warning_set(uint16_t id);
  * @brief Check whether a given fault status bit is set.
  */
 bool status_is_fault_set(uint16_t id);
+
+/**
+ * @brief Check whether a given info status bit it set.
+ */
+bool status_is_info_set(uint16_t id);
 
 /**
  * @brief Check whether any bit in the given class is set.
