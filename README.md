@@ -3,24 +3,25 @@
 [![Run Unity Tests](https://github.com/ACIDBURN2501/status/actions/workflows/test.yml/badge.svg)](https://github.com/ACIDBURN2501/status/actions/workflows/test.yml)
 
 This module provides a lightweight status register system for embedded systems.
-It allows tracking of faults and warnings using banked bitfields, encoded as
-compact 16-bit status IDs. This design minimizes runtime overhead and is
-suitable for small targets such as microcontrollers.
+It allows tracking of faults, warnings and info bits using banked bitfields,
+encoded as compact 16-bit status IDs. This design minimizes runtime overhead and
+is suitable for small targets such as microcontrollers.
 
-The module uses separate internal banks for **faults** and **warnings**, and
-provides explicit APIs for setting, clearing, querying, and toggling status bits.
+The module uses separate internal banks for **faults**, **warnings**, and **info**,
+and provides explicit APIs for setting, clearing, querying, and toggling status
+bits.
 
 ⚠️ **Note:** Status IDs must be created using the `STATUS_ENCODE(bank, bit)`
 macro, and the bank must be less than `NUM_STATUS_BANKS`, with bit values
 ranging from 0–15. Runtime assertions are included to validate ID use.
 
 ## Features
-- Independent tracking of faults and warnings
+- Independent tracking of faults, warnings, and, info bits
 - Compact 16-bit encoded status IDs
 - Runtime assertions for ID safety (bank/bit bounds)
-- Explicit API separation for fault vs warning logic
+- Explicit API separation for fault, warning, and info logic
 - `status_any()` to check for any active condition
-- `status_clear_all()` to clear all faults or warnings
+- `status_clear_all()` to clear all bits for a specific status class
 
 ## Integration
 ```c
