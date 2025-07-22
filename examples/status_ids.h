@@ -52,4 +52,17 @@
 #define STATUS_ID_WARN_CAN_LOAD_HIGH   STATUS_ENCODE(5u, 0u)
 #define STATUS_ID_WARN_BROADCAST_LOSS  STATUS_ENCODE(5u, 1u)
 
+/* ----------------------
+ * Info Status IDs
+ * ---------------------- */
+
+// Bank 0: Power Info
+#define STATUS_ID_INFO_AC_LIVE         STATUS_ENCODE(0u, 0u)
+
+// Bank 1: Thermal Info
+#define STATUS_ID_INFO_TEMP_CHANGING   STATUS_ENCODE(1u, 0u)
+
+// Bank 2: Communication Info
+#define STATUS_ID_INFO_CAN_ACTIVE      STATUS_ENCODE(2u, 0u)
+
 #endif // STATUS_IDS_H
