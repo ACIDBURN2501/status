@@ -14,29 +14,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifndef ASSERT
-#if defined(DEBUG)
-#if defined(__GNUC__) || defined(__clang__)
-// Use GCC/Clang trap
-#define ASSERT(c)                                                              \
-        do {                                                                   \
-                if (!(c))                                                      \
-                        __builtin_trap();                                      \
-        } while (0)
-#else
-// Generic fallback (TI C2000 etc)
-#define ASSERT(c)                                                              \
-        do {                                                                   \
-                if (!(c)) {                                                    \
-                        for (;;) {}                                            \
-                }                                                              \
-        } while (0)
-#endif
-#else
-// Assertions disabled in non-debug builds
-#define ASSERT(c) ((void)0)
-#endif
-#endif
+/* ---------------  Configuration ------------------------------------------- */
 
 /**
  * @def NUM_STATUS_BANKS
@@ -51,10 +29,17 @@
  */
 #define NUM_STATUS_BANKS (8u)
 
+/* ---------------  Structures ---------------------------------------------- */
 /**
- * @name Status ID encoding helpers.
- * @{
+ * @brief Status class for categorization.
  */
+enum status_class {
+        STATUS_CLASS_FAULT = 0,
+        STATUS_CLASS_WARNING = 1,
+        STATUS_CLASS_INFO = 2,
+};
+
+/* --------------- Compile-time Helpers ------------------------------------- */
 
 /**
  * @def STATUS_ENCODE
@@ -82,6 +67,53 @@
         (((uint16_t)(bank) << 4u) | ((uint16_t)(bit) & 0x0Fu))
 
 /**
+ * @def ASSERT
+ * @brief Runtime assertion macro for debugging builds.
+ *
+ * @details
+ *   Evaluates the given condition. If the condition is false:
+ *   - On GCC/Clang, triggers a trap via `__builtin_trap()`.
+ *   - On other platforms (including TI C2000), enters an infinite loop.
+ *   In non-debug builds, assertions are disabled and have no effect.
+ *
+ * @param c Condition to evaluate. If false, triggers a trap or infinite loop.
+ *
+ * @note
+ *   Use this macro to catch programming errors during development.
+ *   Assertions are only active when `DEBUG` is defined.
+ *   For TI C2000 and other non-GCC/Clang compilers, the macro uses an infinite
+ * loop as a trap.
+ *
+ * @usage
+ *   ASSERT(ptr != NULL); // Triggers if ptr is NULL in debug builds
+ */
+#ifndef ASSERT
+#if defined(DEBUG)
+#if defined(__GNUC__) || defined(__clang__)
+// Use GCC/Clang trap
+#define ASSERT(c)                                                              \
+        do {                                                                   \
+                if (!(c))                                                      \
+                        __builtin_trap();                                      \
+        } while (0)
+#else
+// Generic fallback (TI C2000 etc)
+#define ASSERT(c)                                                              \
+        do {                                                                   \
+                if (!(c)) {                                                    \
+                        for (;;) {}                                            \
+                }                                                              \
+        } while (0)
+#endif
+#else
+// Assertions disabled in non-debug builds
+#define ASSERT(c) ((void)0)
+#endif
+#endif
+
+/* ---------------  Run-time Helpers ---------------------------------------- */
+
+/**
  * @brief Extracts the bank number from an encoded status ID.
  *
  * @param id        A status ID encoded using `STATUS_ENCODE()`.
@@ -107,19 +139,7 @@ status_bit(uint16_t id)
         return (uint16_t)(id & 0x0Fu);
 }
 
-/**
- * End: Status ID encoding helpers.
- * @}
- */
-
-/**
- * @brief Status class for categorization.
- */
-enum status_class {
-        STATUS_CLASS_FAULT = 0,
-        STATUS_CLASS_WARNING = 1,
-        STATUS_CLASS_INFO = 2,
-};
+/* ---------------  Public Interface ---------------------------------------- */
 
 /**
  * @brief Initialize the status module.
