@@ -53,7 +53,7 @@ _set(uint16_t id, enum status_class cls)
                 return;
         }
 
-        b[bank] |= (uint16_t)(1u << ((bit) & 0x0Fu));
+        b[bank] |= (1u << ((bit) & 0x0Fu));
 
         switch (cls) {
         case STATUS_CLASS_FAULT: last_fault_id = id; break;
@@ -77,7 +77,7 @@ _clear(uint16_t id, enum status_class cls)
                 return;
         }
 
-        b[bank] &= ~(uint16_t)(1u << ((bit) & 0x0Fu));
+        b[bank] &= ~(1u << ((bit) & 0x0Fu));
 }
 
 void
@@ -95,7 +95,7 @@ _toggle(uint16_t id, enum status_class cls)
                 return;
         }
 
-        b[bank] ^= (uint16_t)(1u << bit);
+        b[bank] ^= (1u << bit);
 }
 
 bool
@@ -113,7 +113,7 @@ _is_set(uint16_t id, enum status_class cls)
                 return false;
         }
 
-        return (b[bank] & (uint16_t)(1u << ((bit) & 0x0Fu))) != 0;
+        return (b[bank] & (1u << ((bit) & 0x0Fu))) != 0;
 }
 
 /* ---------------  Public Interface ---------------------------------------- */
