@@ -15,6 +15,9 @@
 
 /* ---------------- Configuration ------------------------------------------- */
 
+_Static_assert(NUM_STATUS_BITS <= 16U,
+               "NUM_STATUS_BIT must fit within uint16_t shift limit");
+
 #define UNSET_ID 0xFFFFu
 
 static uint16_t fault_banks[NUM_STATUS_BANKS];
@@ -28,22 +31,20 @@ static uint16_t last_info_id = UNSET_ID;
 /* ---------------- Helpers ------------------------------------------------- */
 
 /**
- * @brief Computes the minimum of two size_t values.
+ * @brief Computes the minimum of two values.
  *
  * @details
- *    This inline function takes two `size_t` arguments and returns the
+ *    This inline function takes two arguments and returns the
  *    smaller value.
  *
- * @param[in] a     The first size_t value to compare.
- * @param[in] b     The second size_t value to compare.
+ * @param a         The second value to compare.
+ * @param b         The second value to compare.
  *
  * @return          The minimum of `a` and `b`.
  */
-static inline size_t
-_min(size_t a, size_t b)
-{
-        return a < b ? a : b;
-}
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
 
 static inline uint16_t *
 _get_bank_array(enum status_class cls)
@@ -71,7 +72,7 @@ _set(uint16_t id, enum status_class cls)
                 return;
         }
 
-        b[bank] |= (1u << ((bit) & 0x0Fu));
+        b[bank] |= (1u << bit);
 
         switch (cls) {
         case STATUS_CLASS_FAULT: last_fault_id = id; break;
@@ -95,7 +96,7 @@ _clear(uint16_t id, enum status_class cls)
                 return;
         }
 
-        b[bank] &= ~(1u << ((bit) & 0x0Fu));
+        b[bank] &= ~(1u << bit);
 }
 
 void
@@ -131,7 +132,7 @@ _is_set(uint16_t id, enum status_class cls)
                 return false;
         }
 
-        return (b[bank] & (1u << ((bit) & 0x0Fu))) != 0;
+        return (b[bank] & (1u << bit)) != 0;
 }
 
 /* ---------------  Public Interface ---------------------------------------- */
@@ -276,5 +277,5 @@ status_snapshot(enum status_class cls, uint16_t *dst, size_t len)
                 return;
         }
 
-        memcpy(dst, src, sizeof(uint16_t) * _min(len, NUM_STATUS_BANKS));
+        memcpy(dst, src, sizeof(uint16_t) * MIN(len, NUM_STATUS_BANKS));
 }
