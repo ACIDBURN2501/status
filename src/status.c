@@ -1,7 +1,7 @@
 /*
  * @copyright MIT
  *
- * @file: status.h
+ * @file: status.c
  *
  * @brief Implementation of core status tracking functionality.
  */
@@ -15,36 +15,17 @@
 
 /* ---------------- Configuration ------------------------------------------- */
 
+#define UNSET_ID 0xFFFFu;
+
 static uint16_t fault_banks[NUM_STATUS_BANKS];
 static uint16_t warning_banks[NUM_STATUS_BANKS];
 static uint16_t info_banks[NUM_STATUS_BANKS];
 
-static uint16_t last_fault_id = 0xFFFF;
-static uint16_t last_warning_id = 0xFFFF;
-static uint16_t last_info_id = 0xFFFF;
+static uint16_t last_fault_id = UNSET_ID;
+static uint16_t last_warning_id = UNSET_ID;
+static uint16_t last_info_id = UNSET_ID;
 
 /* ---------------- Helpers ------------------------------------------------- */
-
-/**
- * @brief
- *    Internal helper to validate that a status ID is within legal bounds.
- *
- * @details
- *    Checks that the bank index is less than `NUM_STATUS_BANKS` and
- *    the bit index is less than 16. Fails via ASSERT if out of range.
- *
- * @param id
- *    A status ID encoded using `STATUS_ENCODE()`.
- *
- * @note
- *    This is used by all public status APIs to enforce safety at runtime.
- */
-static inline void
-_is_valid(uint16_t id)
-{
-        ASSERT(status_bank(id) < NUM_STATUS_BANKS);
-        ASSERT(status_bit(id) < 16u);
-}
 
 static inline uint16_t *
 _get_bank_array(enum status_class cls)
@@ -60,67 +41,70 @@ _get_bank_array(enum status_class cls)
 void
 _set(uint16_t id, enum status_class cls)
 {
-        _is_valid(id);
         uint16_t bank = status_bank(id);
         uint16_t bit = status_bit(id);
+
+        if ((bank >= NUM_STATUS_BANKS) || (bit >= NUM_STATUS_BITS)) {
+                return;
+        }
 
         uint16_t *b = _get_bank_array(cls);
         if (b == NULL) {
                 return;
         }
 
-        if (bank < NUM_STATUS_BANKS) {
-                b[bank] |= (uint16_t)(1u << bit);
-                switch (cls) {
-                case STATUS_CLASS_FAULT: last_fault_id = id; break;
-                case STATUS_CLASS_WARNING: last_warning_id = id; break;
-                case STATUS_CLASS_INFO: last_info_id = id; break;
-                }
+        b[bank] |= (uint16_t)(1u << ((bit) & 0x0Fu));
+
+        switch (cls) {
+        case STATUS_CLASS_FAULT: last_fault_id = id; break;
+        case STATUS_CLASS_WARNING: last_warning_id = id; break;
+        case STATUS_CLASS_INFO: last_info_id = id; break;
         }
 }
 
 void
 _clear(uint16_t id, enum status_class cls)
 {
-        _is_valid(id);
         uint16_t bank = status_bank(id);
         uint16_t bit = status_bit(id);
+
+        if ((bank >= NUM_STATUS_BANKS) || (bit >= NUM_STATUS_BITS)) {
+                return;
+        }
 
         uint16_t *b = _get_bank_array(cls);
         if (b == NULL) {
                 return;
         }
 
-        if (bank < NUM_STATUS_BANKS) {
-                b[bank] &= ~(uint16_t)(1u << bit);
-        }
+        b[bank] &= ~(uint16_t)(1u << ((bit) & 0x0Fu));
 }
 
 void
 _toggle(uint16_t id, enum status_class cls)
 {
-        _is_valid(id);
         uint16_t bank = status_bank(id);
         uint16_t bit = status_bit(id);
+
+        if ((bank >= NUM_STATUS_BANKS) || (bit >= NUM_STATUS_BITS)) {
+                return;
+        }
 
         uint16_t *b = _get_bank_array(cls);
         if (b == NULL) {
                 return;
         }
 
-        if (bank < NUM_STATUS_BANKS) {
-                b[bank] ^= (uint16_t)(1u << bit);
-        }
+        b[bank] ^= (uint16_t)(1u << bit);
 }
 
 bool
 _is_set(uint16_t id, enum status_class cls)
 {
-        _is_valid(id);
         uint16_t bank = status_bank(id);
         uint16_t bit = status_bit(id);
 
-        if (bank >= NUM_STATUS_BANKS) {
+        if ((bank >= NUM_STATUS_BANKS) || (bit >= NUM_STATUS_BITS)) {
                 return false;
         }
 
@@ -129,7 +113,7 @@ _is_set(uint16_t id, enum status_class cls)
                 return false;
         }
 
-        return (b[bank] & (uint16_t)(1u << bit)) != 0;
+        return (b[bank] & (uint16_t)(1u << ((bit) & 0x0Fu))) != 0;
 }
 
 /* ---------------  Public Interface ---------------------------------------- */
@@ -137,12 +121,12 @@ _is_set(uint16_t id, enum status_class cls)
 void
 status_init(void)
 {
-        memset(fault_banks, 0u, sizeof(fault_banks));
-        memset(warning_banks, 0u, sizeof(warning_banks));
-        memset(info_banks, 0u, sizeof(info_banks));
-        last_fault_id = 0xFFFF;
-        last_warning_id = 0xFFFF;
-        last_info_id = 0xFFFF;
+        memset(fault_banks, 0U, sizeof(fault_banks));
+        memset(warning_banks, 0U, sizeof(warning_banks));
+        memset(info_banks, 0U, sizeof(info_banks));
+        last_fault_id = UNSET_ID;
+        last_warning_id = UNSET_ID;
+        last_info_id = UNSET_ID;
 }
 
 void

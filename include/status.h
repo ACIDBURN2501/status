@@ -29,6 +29,11 @@
  */
 #define NUM_STATUS_BANKS (8u)
 
+/**
+ * @def NUM_STATUS_BITS
+ */
+#define NUM_STATUS_BITS  (16u)
+
 /* ---------------  Structures ---------------------------------------------- */
 /**
  * @brief Status class for categorization.
@@ -65,51 +70,6 @@ enum status_class {
  */
 #define STATUS_ENCODE(bank, bit)                                               \
         (((uint16_t)(bank) << 4u) | ((uint16_t)(bit) & 0x0Fu))
-
-/**
- * @def ASSERT
- * @brief Runtime assertion macro for debugging builds.
- *
- * @details
- *   Evaluates the given condition. If the condition is false:
- *   - On GCC/Clang, triggers a trap via `__builtin_trap()`.
- *   - On other platforms (including TI C2000), enters an infinite loop.
- *   In non-debug builds, assertions are disabled and have no effect.
- *
- * @param c Condition to evaluate. If false, triggers a trap or infinite loop.
- *
- * @note
- *   Use this macro to catch programming errors during development.
- *   Assertions are only active when `DEBUG` is defined.
- *   For TI C2000 and other non-GCC/Clang compilers, the macro uses an infinite
- * loop as a trap.
- *
- * @usage
- *   ASSERT(ptr != NULL); // Triggers if ptr is NULL in debug builds
- */
-#ifndef ASSERT
-#if defined(DEBUG)
-#if defined(__GNUC__) || defined(__clang__)
-// Use GCC/Clang trap
-#define ASSERT(c)                                                              \
-        do {                                                                   \
-                if (!(c))                                                      \
-                        __builtin_trap();                                      \
-        } while (0)
-#else
-// Generic fallback (TI C2000 etc)
-#define ASSERT(c)                                                              \
-        do {                                                                   \
-                if (!(c)) {                                                    \
-                        for (;;) {}                                            \
-                }                                                              \
-        } while (0)
-#endif
-#else
-// Assertions disabled in non-debug builds
-#define ASSERT(c) ((void)0)
-#endif
-#endif
 
 /* ---------------  Run-time Helpers ---------------------------------------- */
 
@@ -218,6 +178,12 @@ void status_clear_all(enum status_class cls);
 
 /**
  * @brief Get the last status ID that was set.
+ *
+ * Note:
+ *     This value is updated automatically whenever any new fault is set using
+ *     status_set_fault(). It reflects only the MOST RECENTLY SET fault,
+ *     not all faults currently active. Use status_any(STATUS_CLASS_FAULT) to
+ *     check if any faults exist at runtime.
  */
 uint16_t status_last_fault(void);
 
