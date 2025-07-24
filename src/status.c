@@ -211,7 +211,7 @@ status_any(enum status_class cls)
         }
 
         for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
-                if (banks[i] != 0) {
+                if (banks[i]) {
                         return true;
                 }
         }
