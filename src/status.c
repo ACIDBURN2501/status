@@ -15,7 +15,7 @@
 
 /* ---------------- Configuration ------------------------------------------- */
 
-#define UNSET_ID 0xFFFFu;
+#define UNSET_ID 0xFFFFu
 
 static uint16_t fault_banks[NUM_STATUS_BANKS];
 static uint16_t warning_banks[NUM_STATUS_BANKS];
