@@ -27,6 +27,24 @@ static uint16_t last_info_id = UNSET_ID;
 
 /* ---------------- Helpers ------------------------------------------------- */
 
+/**
+ * @brief Computes the minimum of two size_t values.
+ *
+ * @details
+ *    This inline function takes two `size_t` arguments and returns the
+ *    smaller value.
+ *
+ * @param[in] a     The first size_t value to compare.
+ * @param[in] b     The second size_t value to compare.
+ *
+ * @return          The minimum of `a` and `b`.
+ */
+static inline size_t
+_min(size_t a, size_t b)
+{
+        return a < b ? a : b;
+}
+
 static inline uint16_t *
 _get_bank_array(enum status_class cls)
 {
@@ -253,8 +271,10 @@ status_last_info(void)
 void
 status_snapshot(enum status_class cls, uint16_t *dst, size_t len)
 {
-        const uint16_t *banks = _get_bank_array(cls);
-        for (size_t i = 0; i < len && i < NUM_STATUS_BANKS; ++i) {
-                dst[i] = banks[i];
+        const uint16_t *src = _get_bank_array(cls);
+        if (!src || !len) {
+                return;
         }
+
+        memcpy(dst, src, sizeof(uint16_t) * _min(len, NUM_STATUS_BANKS));
 }
