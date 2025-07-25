@@ -59,7 +59,7 @@ _get_bank_array(enum status_class cls)
         }
 }
 
-void
+static void
 _set(uint16_t id, enum status_class cls)
 {
         uint16_t bank = status_bank(id);
@@ -83,7 +83,7 @@ _set(uint16_t id, enum status_class cls)
         }
 }
 
-void
+static void
 _clear(uint16_t id, enum status_class cls)
 {
         uint16_t bank = status_bank(id);
@@ -101,7 +101,7 @@ _clear(uint16_t id, enum status_class cls)
         b[bank] &= ~((uint16_t)1u << bit);
 }
 
-void
+static void
 _toggle(uint16_t id, enum status_class cls)
 {
         uint16_t bank = status_bank(id);
@@ -119,7 +119,7 @@ _toggle(uint16_t id, enum status_class cls)
         b[bank] ^= (1u << bit);
 }
 
-bool
+static bool
 _is_set(uint16_t id, enum status_class cls)
 {
         uint16_t bank = status_bank(id);
