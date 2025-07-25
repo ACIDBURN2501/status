@@ -48,8 +48,9 @@ _min_u16(size_t a, size_t b)
         return (a < b) ? a : b;
 }
 
+/* Writeable view */
 static inline uint16_t *
-_get_bank_array(enum status_class cls)
+_get_banks_mut(enum status_class cls)
 {
         switch (cls) {
         case STATUS_CLASS_FAULT: return fault_banks;
@@ -57,6 +58,13 @@ _get_bank_array(enum status_class cls)
         case STATUS_CLASS_INFO: return info_banks;
         default: return NULL;
         }
+}
+
+/* Read-only view */
+static inline const uint16_t *
+_get_banks_ro(enum status_class cls)
+{
+        return _get_banks_mut(cls); /* Upcast to const */
 }
 
 static void
@@ -69,7 +77,7 @@ _set(uint16_t id, enum status_class cls)
                 return;
         }
 
-        uint16_t *b = _get_bank_array(cls);
+        uint16_t *b = _get_banks_mut(cls);
         if (b == NULL) {
                 return;
         }
@@ -93,7 +101,7 @@ _clear(uint16_t id, enum status_class cls)
                 return;
         }
 
-        uint16_t *b = _get_bank_array(cls);
+        uint16_t *b = _get_banks_mut(cls);
         if (b == NULL) {
                 return;
         }
@@ -111,7 +119,7 @@ _toggle(uint16_t id, enum status_class cls)
                 return;
         }
 
-        uint16_t *b = _get_bank_array(cls);
+        uint16_t *b = _get_banks_mut(cls);
         if (b == NULL) {
                 return;
         }
@@ -129,7 +137,7 @@ _is_set(uint16_t id, enum status_class cls)
                 return false;
         }
 
-        uint16_t *b = _get_bank_array(cls);
+        const uint16_t *b = _get_banks_ro(cls);
         if (b == NULL) {
                 return false;
         }
@@ -225,14 +233,14 @@ status_is_info_set(uint16_t id)
 bool
 status_any(enum status_class cls)
 {
-        const uint16_t *banks = _get_bank_array(cls);
+        const uint16_t *b = _get_banks_ro(cls);
 
-        if (banks == NULL) {
+        if (b == NULL) {
                 return false;
         }
 
         for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
-                if (banks[i]) {
+                if (b[i]) {
                         return true;
                 }
         }
@@ -242,14 +250,14 @@ status_any(enum status_class cls)
 void
 status_clear_all(enum status_class cls)
 {
-        uint16_t *banks = _get_bank_array(cls);
+        uint16_t *b = _get_banks_mut(cls);
 
-        if (banks == NULL) {
+        if (b == NULL) {
                 return;
         }
 
         for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
-                banks[i] = 0;
+                b[i] = 0;
         }
 }
 
@@ -274,7 +282,7 @@ status_last_info(void)
 void
 status_snapshot(enum status_class cls, uint16_t *dst, size_t len)
 {
-        const uint16_t *src = _get_bank_array(cls);
+        const uint16_t *src = _get_banks_ro(cls);
         if ((src == NULL) || (dst == NULL) || (len == 0u)) {
                 return;
         }
