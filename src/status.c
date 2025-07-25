@@ -74,7 +74,7 @@ _set(uint16_t id, enum status_class cls)
                 return;
         }
 
-        b[bank] |= (1u << bit);
+        b[bank] |= ((uint16_t)1u << bit);
 
         switch (cls) {
         case STATUS_CLASS_FAULT: last_fault_id = id; break;
@@ -98,7 +98,7 @@ _clear(uint16_t id, enum status_class cls)
                 return;
         }
 
-        b[bank] &= ~(1u << bit);
+        b[bank] &= ~((uint16_t)1u << bit);
 }
 
 void
@@ -134,7 +134,7 @@ _is_set(uint16_t id, enum status_class cls)
                 return false;
         }
 
-        return (b[bank] & (1u << bit)) != 0;
+        return (b[bank] & ((uint16_t)1u << bit)) != 0;
 }
 
 /* ---------------  Public Interface ---------------------------------------- */
