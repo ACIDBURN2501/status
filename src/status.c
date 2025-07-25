@@ -124,7 +124,7 @@ _toggle(uint16_t id, enum status_class cls)
                 return;
         }
 
-        b[bank] ^= (1u << bit);
+        b[bank] ^= ((uint16_t)1u << bit);
 }
 
 static bool
