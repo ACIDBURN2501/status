@@ -20,9 +20,9 @@ _Static_assert(NUM_STATUS_BITS <= 16U,
 
 #define UNSET_ID 0xFFFFu
 
-static uint16_t fault_banks[NUM_STATUS_BANKS];
-static uint16_t warning_banks[NUM_STATUS_BANKS];
-static uint16_t info_banks[NUM_STATUS_BANKS];
+static volatile uint16_t fault_banks[NUM_STATUS_BANKS];
+static volatile uint16_t warning_banks[NUM_STATUS_BANKS];
+static volatile uint16_t info_banks[NUM_STATUS_BANKS];
 
 static uint16_t last_fault_id = UNSET_ID;
 static uint16_t last_warning_id = UNSET_ID;
@@ -49,7 +49,7 @@ _min_u16(size_t a, size_t b)
 }
 
 /* Writeable view */
-static inline uint16_t *
+static inline volatile uint16_t *
 _get_banks_mut(enum status_class cls)
 {
         switch (cls) {
@@ -61,7 +61,7 @@ _get_banks_mut(enum status_class cls)
 }
 
 /* Read-only view */
-static inline const uint16_t *
+static inline const volatile uint16_t *
 _get_banks_ro(enum status_class cls)
 {
         return _get_banks_mut(cls); /* Upcast to const */
@@ -77,7 +77,7 @@ _set(uint16_t id, enum status_class cls)
                 return;
         }
 
-        uint16_t *b = _get_banks_mut(cls);
+        volatile uint16_t *b = _get_banks_mut(cls);
         if (b == NULL) {
                 return;
         }
@@ -101,7 +101,7 @@ _clear(uint16_t id, enum status_class cls)
                 return;
         }
 
-        uint16_t *b = _get_banks_mut(cls);
+        volatile uint16_t *b = _get_banks_mut(cls);
         if (b == NULL) {
                 return;
         }
@@ -119,7 +119,7 @@ _toggle(uint16_t id, enum status_class cls)
                 return;
         }
 
-        uint16_t *b = _get_banks_mut(cls);
+        volatile uint16_t *b = _get_banks_mut(cls);
         if (b == NULL) {
                 return;
         }
@@ -137,7 +137,7 @@ _is_set(uint16_t id, enum status_class cls)
                 return false;
         }
 
-        const uint16_t *b = _get_banks_ro(cls);
+        const volatile uint16_t *b = _get_banks_ro(cls);
         if (b == NULL) {
                 return false;
         }
@@ -150,9 +150,15 @@ _is_set(uint16_t id, enum status_class cls)
 void
 status_init(void)
 {
-        memset(fault_banks, 0U, sizeof(fault_banks));
-        memset(warning_banks, 0U, sizeof(warning_banks));
-        memset(info_banks, 0U, sizeof(info_banks));
+        for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
+                fault_banks[i] = 0U;
+        }
+        for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
+                warning_banks[i] = 0U;
+        }
+        for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
+                info_banks[i] = 0U;
+        }
         last_fault_id = UNSET_ID;
         last_warning_id = UNSET_ID;
         last_info_id = UNSET_ID;
@@ -233,7 +239,7 @@ status_is_info_set(uint16_t id)
 bool
 status_any(enum status_class cls)
 {
-        const uint16_t *b = _get_banks_ro(cls);
+        const volatile uint16_t *b = _get_banks_ro(cls);
 
         if (b == NULL) {
                 return false;
@@ -250,7 +256,7 @@ status_any(enum status_class cls)
 void
 status_clear_all(enum status_class cls)
 {
-        uint16_t *b = _get_banks_mut(cls);
+        volatile uint16_t *b = _get_banks_mut(cls);
 
         if (b == NULL) {
                 return;
@@ -282,10 +288,13 @@ status_last_info(void)
 void
 status_snapshot(enum status_class cls, uint16_t *dst, size_t len)
 {
-        const uint16_t *src = _get_banks_ro(cls);
+        const volatile uint16_t *src = _get_banks_ro(cls);
         if ((src == NULL) || (dst == NULL) || (len == 0u)) {
                 return;
         }
 
-        memcpy(dst, src, sizeof(uint16_t) * _min_u16(len, NUM_STATUS_BANKS));
+        const size_t copy_len = _min_u16(len, NUM_STATUS_BANKS);
+        for (size_t i = 0; i < copy_len; ++i) {
+                dst[i] = src[i];
+        }
 }
