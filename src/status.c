@@ -42,9 +42,11 @@ static uint16_t last_info_id = UNSET_ID;
  *
  * @return          The minimum of `a` and `b`.
  */
-#ifndef MIN
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#endif
+static inline size_t
+_min_u16(size_t a, size_t b)
+{
+        return (a < b) ? a : b;
+}
 
 static inline uint16_t *
 _get_bank_array(enum status_class cls)
@@ -277,5 +279,5 @@ status_snapshot(enum status_class cls, uint16_t *dst, size_t len)
                 return;
         }
 
-        memcpy(dst, src, sizeof(uint16_t) * MIN(len, NUM_STATUS_BANKS));
+        memcpy(dst, src, sizeof(uint16_t) * _min_u16(len, NUM_STATUS_BANKS));
 }
