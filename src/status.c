@@ -275,7 +275,7 @@ void
 status_snapshot(enum status_class cls, uint16_t *dst, size_t len)
 {
         const uint16_t *src = _get_bank_array(cls);
-        if (!src || !len) {
+        if ((src == NULL) || (dst == NULL) || (len == 0u)) {
                 return;
         }
 
