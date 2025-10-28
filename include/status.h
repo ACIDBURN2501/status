@@ -69,8 +69,7 @@ enum status_class {
  *    The maximum bit index is 15. Higher values are masked off.
  */
 #define STATUS_ENCODE(bank, bit)                                               \
-        ((((uint16_t)(bank) & (NUM_STATUS_BANKS - 1u)) << 4u)                  \
-         | ((uint16_t)(bit) & 0x0Fu))
+        ((((uint16_t)(bank) << 4u) | ((uint16_t)(bit) & 0x0Fu)))
 
 /* ---------------  Run-time Helpers ---------------------------------------- */
 
