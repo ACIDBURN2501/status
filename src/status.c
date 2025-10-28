@@ -15,6 +15,9 @@
 
 /* ---------------- Configuration ------------------------------------------- */
 
+_Static_assert(NUM_STATUS_BANKS <= 4096u, "Too many banks for 12-bit field");
+_Static_assert((0u <= 15u),
+               "bit field is 4 bits (0..15)"); /* documentation hint */
 _Static_assert(NUM_STATUS_BITS <= 16U,
                "NUM_STATUS_BIT must fit within uint16_t shift limit");
 
