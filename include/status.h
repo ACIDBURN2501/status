@@ -27,7 +27,7 @@
  * @note
  *    This value must match the maximum `bank + 1` used in status_ids.h.
  */
-#define NUM_STATUS_BANKS (8u)
+#define NUM_STATUS_BANKS (12u)
 
 /**
  * @def NUM_STATUS_BITS
