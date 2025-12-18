@@ -16,7 +16,7 @@
 #ifndef STATUS_IDS_H
 #define STATUS_IDS_H
 
-#include "../include/status.h"
+#include "../src/status.h"
 
 /* ----------------------
  * Fault Status IDs

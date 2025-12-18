@@ -14,6 +14,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "status_version.h"
+
 /* ---------------  Configuration ------------------------------------------- */
 
 /**
@@ -27,12 +29,32 @@
  * @note
  *    This value must match the maximum `bank + 1` used in status_ids.h.
  */
+#ifndef NUM_STATUS_BANKS
 #define NUM_STATUS_BANKS (12u)
+#endif
 
 /**
  * @def NUM_STATUS_BITS
  */
-#define NUM_STATUS_BITS  (16u)
+#define NUM_STATUS_BITS (16u)
+
+/* ---------------  Critical Sections --------------------------------------- */
+
+/**
+ * @brief Enter critical section (disable interrupts).
+ * @note Must be defined by the user for thread-safe operation.
+ */
+#ifndef STATUS_ENTER_CRITICAL
+#define STATUS_ENTER_CRITICAL()
+#endif
+
+/**
+ * @brief Exit critical section (restore interrupts).
+ * @note Must be defined by the user for thread-safe operation.
+ */
+#ifndef STATUS_EXIT_CRITICAL
+#define STATUS_EXIT_CRITICAL()
+#endif
 
 /* ---------------  Structures ---------------------------------------------- */
 /**
@@ -43,6 +65,21 @@ enum status_class {
         STATUS_CLASS_WARNING = 1,
         STATUS_CLASS_INFO = 2,
 };
+
+/**
+ * @brief Error types for status_err_callback.
+ */
+typedef enum {
+        STATUS_ERR_INVALID_ID = 0,
+        STATUS_ERR_INVALID_BANK,
+        STATUS_ERR_INVALID_BIT,
+        STATUS_ERR_NULL_PTR
+} status_err_t;
+
+/**
+ * @brief Callback function type for error handling.
+ */
+typedef void (*status_err_cb_t)(status_err_t err, uint16_t id);
 
 /* --------------- Compile-time Helpers ------------------------------------- */
 
@@ -105,6 +142,13 @@ status_bit(uint16_t id)
  * @brief Initialize the status module.
  */
 void status_init(void);
+
+/**
+ * @brief Set a callback for handling errors (e.g. invalid IDs).
+ *
+ * @param cb        Function pointer to the error handler.
+ */
+void status_set_err_callback(status_err_cb_t cb);
 
 /**
  * @brief Set the given warning status bit.

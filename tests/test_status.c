@@ -1,8 +1,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "../examples/status_ids.h"
-#include "../include/status.h"
+#include "status.h"
+#include "status_ids.h"
 
 void
 setUp(void)

@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "../include/status.h"
+#include "status.h"
 
 /* ---------------- Configuration ------------------------------------------- */
 
@@ -31,6 +31,8 @@ static uint16_t last_fault_id = UNSET_ID;
 static uint16_t last_warning_id = UNSET_ID;
 static uint16_t last_info_id = UNSET_ID;
 
+static status_err_cb_t err_cb = NULL;
+
 /* ---------------- Helpers ------------------------------------------------- */
 
 /**
@@ -46,14 +48,14 @@ static uint16_t last_info_id = UNSET_ID;
  * @return          The minimum of `a` and `b`.
  */
 static inline size_t
-_min_u16(size_t a, size_t b)
+min_u16(size_t a, size_t b)
 {
         return (a < b) ? a : b;
 }
 
 /* Writeable view */
 static inline volatile uint16_t *
-_get_banks_mut(enum status_class cls)
+get_banks_mut(enum status_class cls)
 {
         switch (cls) {
         case STATUS_CLASS_FAULT: return fault_banks;
@@ -65,26 +67,42 @@ _get_banks_mut(enum status_class cls)
 
 /* Read-only view */
 static inline const volatile uint16_t *
-_get_banks_ro(enum status_class cls)
+get_banks_ro(enum status_class cls)
 {
-        return _get_banks_mut(cls); /* Upcast to const */
+        return get_banks_mut(cls); /* Upcast to const */
 }
 
 static void
-_set(uint16_t id, enum status_class cls)
+invoke_err_cb(status_err_t err, uint16_t id)
+{
+        if (err_cb != NULL) {
+                err_cb(err, id);
+        }
+}
+
+static void
+set_bit(uint16_t id, enum status_class cls)
 {
         uint16_t bank = status_bank(id);
         uint16_t bit = status_bit(id);
 
-        if ((bank >= NUM_STATUS_BANKS) || (bit >= NUM_STATUS_BITS)) {
+        if (bank >= NUM_STATUS_BANKS) {
+                invoke_err_cb(STATUS_ERR_INVALID_BANK, id);
                 return;
         }
 
-        volatile uint16_t *b = _get_banks_mut(cls);
+        if (bit >= NUM_STATUS_BITS) {
+                invoke_err_cb(STATUS_ERR_INVALID_BIT, id);
+                return;
+        }
+
+        volatile uint16_t *b = get_banks_mut(cls);
         if (b == NULL) {
+                invoke_err_cb(STATUS_ERR_INVALID_ID, id);
                 return;
         }
 
+        STATUS_ENTER_CRITICAL();
         b[bank] |= ((uint16_t)1u << bit);
 
         switch (cls) {
@@ -92,56 +110,82 @@ _set(uint16_t id, enum status_class cls)
         case STATUS_CLASS_WARNING: last_warning_id = id; break;
         case STATUS_CLASS_INFO: last_info_id = id; break;
         }
+        STATUS_EXIT_CRITICAL();
 }
 
 static void
-_clear(uint16_t id, enum status_class cls)
+clear_bit(uint16_t id, enum status_class cls)
 {
         uint16_t bank = status_bank(id);
         uint16_t bit = status_bit(id);
 
-        if ((bank >= NUM_STATUS_BANKS) || (bit >= NUM_STATUS_BITS)) {
+        if (bank >= NUM_STATUS_BANKS) {
+                invoke_err_cb(STATUS_ERR_INVALID_BANK, id);
                 return;
         }
 
-        volatile uint16_t *b = _get_banks_mut(cls);
+        if (bit >= NUM_STATUS_BITS) {
+                invoke_err_cb(STATUS_ERR_INVALID_BIT, id);
+                return;
+        }
+
+        volatile uint16_t *b = get_banks_mut(cls);
         if (b == NULL) {
+                invoke_err_cb(STATUS_ERR_INVALID_ID, id);
                 return;
         }
 
+        STATUS_ENTER_CRITICAL();
         b[bank] &= ~((uint16_t)1u << bit);
+        STATUS_EXIT_CRITICAL();
 }
 
 static void
-_toggle(uint16_t id, enum status_class cls)
+toggle_bit(uint16_t id, enum status_class cls)
 {
         uint16_t bank = status_bank(id);
         uint16_t bit = status_bit(id);
 
-        if ((bank >= NUM_STATUS_BANKS) || (bit >= NUM_STATUS_BITS)) {
+        if (bank >= NUM_STATUS_BANKS) {
+                invoke_err_cb(STATUS_ERR_INVALID_BANK, id);
                 return;
         }
 
-        volatile uint16_t *b = _get_banks_mut(cls);
+        if (bit >= NUM_STATUS_BITS) {
+                invoke_err_cb(STATUS_ERR_INVALID_BIT, id);
+                return;
+        }
+
+        volatile uint16_t *b = get_banks_mut(cls);
         if (b == NULL) {
+                invoke_err_cb(STATUS_ERR_INVALID_ID, id);
                 return;
         }
 
+        STATUS_ENTER_CRITICAL();
         b[bank] ^= ((uint16_t)1u << bit);
+        STATUS_EXIT_CRITICAL();
 }
 
 static bool
-_is_set(uint16_t id, enum status_class cls)
+is_bit_set(uint16_t id, enum status_class cls)
 {
         uint16_t bank = status_bank(id);
         uint16_t bit = status_bit(id);
 
-        if ((bank >= NUM_STATUS_BANKS) || (bit >= NUM_STATUS_BITS)) {
+        if (bank >= NUM_STATUS_BANKS) {
+                invoke_err_cb(STATUS_ERR_INVALID_BANK, id);
                 return false;
         }
 
-        const volatile uint16_t *b = _get_banks_ro(cls);
+        if (bit >= NUM_STATUS_BITS) {
+                invoke_err_cb(STATUS_ERR_INVALID_BIT, id);
+                return false;
+        }
+
+        const volatile uint16_t *b = get_banks_ro(cls);
         if (b == NULL) {
+                invoke_err_cb(STATUS_ERR_INVALID_ID, id);
                 return false;
         }
 
@@ -153,6 +197,7 @@ _is_set(uint16_t id, enum status_class cls)
 void
 status_init(void)
 {
+        STATUS_ENTER_CRITICAL();
         for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
                 fault_banks[i] = 0U;
         }
@@ -165,86 +210,94 @@ status_init(void)
         last_fault_id = UNSET_ID;
         last_warning_id = UNSET_ID;
         last_info_id = UNSET_ID;
+        STATUS_EXIT_CRITICAL();
+}
+
+void
+status_set_err_callback(status_err_cb_t cb)
+{
+        err_cb = cb;
 }
 
 void
 status_set_warning(uint16_t id)
 {
-        _set(id, STATUS_CLASS_WARNING);
+        set_bit(id, STATUS_CLASS_WARNING);
 }
 
 void
 status_set_fault(uint16_t id)
 {
-        _set(id, STATUS_CLASS_FAULT);
+        set_bit(id, STATUS_CLASS_FAULT);
 }
 
 void
 status_set_info(uint16_t id)
 {
-        _set(id, STATUS_CLASS_INFO);
+        set_bit(id, STATUS_CLASS_INFO);
 }
 
 void
 status_clear_warning(uint16_t id)
 {
-        _clear(id, STATUS_CLASS_WARNING);
+        clear_bit(id, STATUS_CLASS_WARNING);
 }
 
 void
 status_clear_fault(uint16_t id)
 {
-        _clear(id, STATUS_CLASS_FAULT);
+        clear_bit(id, STATUS_CLASS_FAULT);
 }
 
 void
 status_clear_info(uint16_t id)
 {
-        _clear(id, STATUS_CLASS_INFO);
+        clear_bit(id, STATUS_CLASS_INFO);
 }
 
 void
 status_toggle_warning(uint16_t id)
 {
-        _toggle(id, STATUS_CLASS_WARNING);
+        toggle_bit(id, STATUS_CLASS_WARNING);
 }
 
 void
 status_toggle_fault(uint16_t id)
 {
-        _toggle(id, STATUS_CLASS_FAULT);
+        toggle_bit(id, STATUS_CLASS_FAULT);
 }
 
 void
 status_toggle_info(uint16_t id)
 {
-        _toggle(id, STATUS_CLASS_INFO);
+        toggle_bit(id, STATUS_CLASS_INFO);
 }
 
 bool
 status_is_warning_set(uint16_t id)
 {
-        return _is_set(id, STATUS_CLASS_WARNING);
+        return is_bit_set(id, STATUS_CLASS_WARNING);
 }
 
 bool
 status_is_fault_set(uint16_t id)
 {
-        return _is_set(id, STATUS_CLASS_FAULT);
+        return is_bit_set(id, STATUS_CLASS_FAULT);
 }
 
 bool
 status_is_info_set(uint16_t id)
 {
-        return _is_set(id, STATUS_CLASS_INFO);
+        return is_bit_set(id, STATUS_CLASS_INFO);
 }
 
 bool
 status_any(enum status_class cls)
 {
-        const volatile uint16_t *b = _get_banks_ro(cls);
+        const volatile uint16_t *b = get_banks_ro(cls);
 
         if (b == NULL) {
+                invoke_err_cb(STATUS_ERR_NULL_PTR, 0xFFFF);
                 return false;
         }
 
@@ -259,15 +312,18 @@ status_any(enum status_class cls)
 void
 status_clear_all(enum status_class cls)
 {
-        volatile uint16_t *b = _get_banks_mut(cls);
+        volatile uint16_t *b = get_banks_mut(cls);
 
         if (b == NULL) {
+                invoke_err_cb(STATUS_ERR_NULL_PTR, 0xFFFF);
                 return;
         }
 
+        STATUS_ENTER_CRITICAL();
         for (size_t i = 0; i < NUM_STATUS_BANKS; ++i) {
                 b[i] = 0;
         }
+        STATUS_EXIT_CRITICAL();
 }
 
 uint16_t
@@ -291,13 +347,17 @@ status_last_info(void)
 void
 status_snapshot(enum status_class cls, uint16_t *dst, size_t len)
 {
-        const volatile uint16_t *src = _get_banks_ro(cls);
+        const volatile uint16_t *src = get_banks_ro(cls);
         if ((src == NULL) || (dst == NULL) || (len == 0u)) {
+                invoke_err_cb(STATUS_ERR_NULL_PTR, 0xFFFF);
                 return;
         }
 
-        const size_t copy_len = _min_u16(len, NUM_STATUS_BANKS);
+        const size_t copy_len = min_u16(len, NUM_STATUS_BANKS);
+
+        STATUS_ENTER_CRITICAL();
         for (size_t i = 0; i < copy_len; ++i) {
                 dst[i] = src[i];
         }
+        STATUS_EXIT_CRITICAL();
 }

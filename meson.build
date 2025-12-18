@@ -8,14 +8,29 @@ endif
 status_sources = files('src/status.c')
 
 # Only install the real public header
-status_headers = files('include/status.h')
+version_split = meson.project_version().split('.')
+major = version_split[0]
+conf_data = configuration_data()
+conf_data.set('MAJOR', major)
+conf_data.set('MINOR', version_split[1])
+conf_data.set('PATCH', version_split[2])
 
-status_inc = include_directories('include')
+configure_file(
+  input: 'src/status_version.h.in',
+  output: 'status_version.h',
+  configuration: conf_data,
+)
 
-status_lib = static_library(
+status_headers = files('src/status.h')
+
+status_inc = include_directories('src', '.')
+
+status_lib = both_libraries(
   'status',
   status_sources,
   include_directories: status_inc,
+  version: meson.project_version(),
+  soversion: major,
 )
 
 status_dep = declare_dependency(
@@ -24,11 +39,4 @@ status_dep = declare_dependency(
   sources: status_headers,
 )
 
-test_exe = executable(
-  'test_status',
-  ['tests/test_status.c'],
-  dependencies: [status_dep],
-  include_directories: status_inc,
-)
-
-test('status module', test_exe)
+subdir('tests')
