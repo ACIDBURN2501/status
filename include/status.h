@@ -33,8 +33,21 @@
 
 /**
  * @def NUM_STATUS_BITS
+ * @brief Number of bit positions within each bank. Fixed at 16 to match the
+ *        uint16_t bank storage type.
  */
 #define NUM_STATUS_BITS (16u)
+
+/**
+ * @def STATUS_UNSET_ID
+ * @brief Sentinel returned by status_last_fault(), status_last_warning(), and
+ *        status_last_info() when no status of that class has been set since the
+ *        last status_init() call.
+ *
+ * @note This value encodes bank 4095 / bit 15, which exceeds NUM_STATUS_BANKS
+ *       and is therefore not a valid application-defined status ID.
+ */
+#define STATUS_UNSET_ID (0xFFFFu)
 
 /* ---------------  Critical Sections --------------------------------------- */
 
@@ -104,7 +117,7 @@ typedef void (*status_err_cb_t)(status_err_t err, uint16_t id);
  *    The maximum bit index is 15. Higher values are masked off.
  */
 #define STATUS_ENCODE(bank, bit)                                               \
-        ((((uint16_t)(bank) << 4u) | ((uint16_t)(bit) & 0x0Fu)))
+        ((uint16_t)(((uint32_t)(bank) << 4u) | ((uint32_t)(bit) & 0x0Fu)))
 
 /* ---------------  Run-time Helpers ---------------------------------------- */
 

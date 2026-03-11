@@ -53,3 +53,6 @@ dkms.conf
 
 #clang-format
 .cache/
+
+# Meson build output
+build/
