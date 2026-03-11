@@ -178,7 +178,8 @@ Returns the most recently set ID for that class. Does not reflect currently acti
 void status_snapshot(enum status_class cls, uint16_t *dst, size_t len);
 ```
 
-Copies all banks for the given class into `dst`. `len` must equal `NUM_STATUS_BANKS`.
+Copies up to `len` banks for the given class into `dst`, capped at
+`NUM_STATUS_BANKS`. Passing `len == 0` reports an error.
 
 ### ID Encoding Helpers
 

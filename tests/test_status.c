@@ -497,6 +497,30 @@ test_any_false_after_init(void)
 }
 
 /*
+ * Invalid status classes must report an error and leave state unchanged.
+ */
+static void
+test_invalid_class_ops(void)
+{
+        setUp();
+
+        TEST_ASSERT(status_any((enum status_class)99) == false);
+        TEST_ASSERT(g_err_count == 1u);
+        TEST_ASSERT(g_last_err == STATUS_ERR_INVALID_ID);
+        TEST_ASSERT(g_last_err_id == STATUS_UNSET_ID);
+        reset_err_state();
+
+        status_set_fault(STATUS_ID_FAULT_OVERCURRENT);
+        status_clear_all((enum status_class)99);
+        TEST_ASSERT(g_err_count == 1u);
+        TEST_ASSERT(g_last_err == STATUS_ERR_INVALID_ID);
+        TEST_ASSERT(g_last_err_id == STATUS_UNSET_ID);
+        TEST_ASSERT(status_is_fault_set(STATUS_ID_FAULT_OVERCURRENT) == true);
+
+        TEST_PASS(__func__);
+}
+
+/*
  * Multiple bits across multiple banks can coexist and clear independently.
  */
 static void
@@ -576,6 +600,7 @@ main(void)
         test_snapshot_zero_len();
         test_class_isolation();
         test_any_false_after_init();
+        test_invalid_class_ops();
         test_multi_bit_multi_bank();
 
         test_init_resets_last_ids();

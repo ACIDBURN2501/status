@@ -268,8 +268,9 @@ uint16_t status_last_info(void);
  * @brief Snapshot all status registers into a destination buffer.
  *
  * @param cls       The class of status.
- * @param dst       Destination array (size must be at least NUM_STATUS_BANKS).
- * @param len       Number of entries to write (must match NUM_STATUS_BANKS).
+ * @param dst       Destination array with space for at least `len` entries.
+ * @param len       Number of bank entries to copy. Copies up to
+ *                  `NUM_STATUS_BANKS` entries; passing 0 reports an error.
  */
 void status_snapshot(enum status_class cls, uint16_t *dst, size_t len);
 
