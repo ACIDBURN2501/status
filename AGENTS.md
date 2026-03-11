@@ -1,14 +1,82 @@
-# Build & Test
-- Build: `meson setup build && meson compile -C build`
-- Run tests: `meson test -C build`
-- Run single test: Modify `tests/test_status.c` main() to call only the desired test function, then rebuild & run.
-- Lint: `clang-format -i src/* tests/*` (Config: .clang-format, 8-space indent, Linux style)
+# AGENTS.md
 
-# Code Style
-- **Standard**: C11 (`c_std=c11`).
-- **Formatting**: 8 spaces indentation (no tabs). Function braces on new line, control flow braces on same line. Return type on separate line from function name.
-- **Naming**: `snake_case` for functions/vars, `UPPER_CASE` for macros/enums. Internal helpers start with `_`.
-- **Types**: Use `<stdint.h>` types (`uint16_t`, etc.) and `<stdbool.h>`.
-- **Documentation**: Doxygen style (`@brief`, `@param`, `@return`) in headers.
-- **Error Handling**: Defensive programming with early returns. Use `_Static_assert` for compile-time checks.
-- **Imports**: Group standard lib includes, then local includes.
+---
+
+## 1) Project-specific instructions
+
+**Project:** `status`
+**Primary goal:** A lightweight C11 status register library for embedded systems.
+
+### 1.1 Essential commands
+
+#### Configure and build (library only)
+
+```sh
+meson setup build --wipe --buildtype=release -Dbuild_tests=false
+meson compile -C build
+```
+
+#### Configure, build, and run unit tests
+
+```sh
+meson setup build --wipe --buildtype=debug -Dbuild_tests=true
+meson compile -C build
+meson test -C build --verbose
+```
+
+#### Notes
+
+- `meson setup` generates the optional `status_version.h` into the **build directory**
+
+---
+
+## 2) CI / source of truth
+
+- CI definitions live in `.github/workflows/ci.yml`.
+- Prefer running the same commands locally as CI runs (see §1.1 above).
+- If `pre-commit` is configured, run `pre-commit run --all-files` before
+  committing.
+
+---
+
+## 3) Docs / commit conventions
+
+- Use **Conventional Commits** format when asked to commit.
+- Keep commits focused; explain *why* in the message body.
+
+---
+
+## 4) C style expectations
+
+### Build & configuration
+
+- Use the Meson build system. Do not introduce CMake, Make, or other systems.
+- Update `src/meson.build` when adding or removing source files.
+
+### Formatting
+
+- `.clang-format` is present and **mandatory**. Run `clang-format -i` on all
+  modified `.c` / `.h` files before committing.
+- Do not reformat unrelated code.
+- Key settings: 8-space indent, `BreakBeforeBraces: Linux`, column limit 80.
+
+### Style & correctness
+
+- Match conventions in the existing files (indentation, braces, naming).
+- Validate pointer arguments at every public API boundary.
+- No heap allocation (`malloc` / `free` / VLAs).
+- Use `uint32_t`, `uint16_t`, `int16_t`, `bool` from `<stdint.h>` /
+  `<stdbool.h>` — never plain `int` for fixed-width fields.
+
+### Error handling
+
+- Public functions return `bool` or validate via early `return`.
+- No `errno`; no exceptions.
+
+### Testing
+
+- Run `meson test -C build` after every change.
+- Add a test case for each bug fix.
+- Tests live in `tests/test_*.c`; all tests must pass.
+
+---
