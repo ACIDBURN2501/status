@@ -14,8 +14,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "status_version.h"
-
 /* ---------------  Configuration ------------------------------------------- */
 
 /**
