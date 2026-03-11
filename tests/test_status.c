@@ -22,8 +22,8 @@
 #define TEST_ASSERT(expr)                                                      \
         do {                                                                   \
                 if (!(expr)) {                                                 \
-                        fprintf(stderr, "FAIL  %s:%d  %s\n",                  \
-                                __FILE__, __LINE__, #expr);                    \
+                        fprintf(stderr, "FAIL  %s:%d  %s\n", __FILE__,         \
+                                __LINE__, #expr);                              \
                         exit(EXIT_FAILURE);                                    \
                 }                                                              \
         } while (0)
@@ -35,13 +35,13 @@
 /* ------------------------------------------------------------------ */
 
 static status_err_t g_last_err;
-static uint16_t     g_last_err_id;
+static uint16_t g_last_err_id;
 static unsigned int g_err_count;
 
 static void
 test_err_cb(status_err_t err, uint16_t id)
 {
-        g_last_err    = err;
+        g_last_err = err;
         g_last_err_id = id;
         ++g_err_count;
 }
@@ -49,9 +49,9 @@ test_err_cb(status_err_t err, uint16_t id)
 static void
 reset_err_state(void)
 {
-        g_last_err    = STATUS_ERR_INVALID_ID;
+        g_last_err = STATUS_ERR_INVALID_ID;
         g_last_err_id = 0u;
-        g_err_count   = 0u;
+        g_err_count = 0u;
 }
 
 static void
@@ -86,10 +86,12 @@ test_warn_set_and_clear(void)
         setUp();
 
         status_set_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
-        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT) == true);
+        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT)
+                    == true);
 
         status_clear_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
-        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT) == false);
+        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT)
+                    == false);
 
         TEST_PASS(__func__);
 }
@@ -129,13 +131,16 @@ test_toggle_warn(void)
 {
         setUp();
 
-        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT) == false);
+        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT)
+                    == false);
 
         status_toggle_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
-        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT) == true);
+        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT)
+                    == true);
 
         status_toggle_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
-        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT) == false);
+        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT)
+                    == false);
 
         TEST_PASS(__func__);
 }
@@ -174,8 +179,10 @@ test_is_warn_set(void)
         setUp();
 
         status_set_warning(STATUS_ID_WARN_FAN_PERF_DROP);
-        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_FAN_PERF_DROP) == true);
-        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_CAN_LOAD_HIGH) == false);
+        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_FAN_PERF_DROP)
+                    == true);
+        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_CAN_LOAD_HIGH)
+                    == false);
 
         TEST_PASS(__func__);
 }
@@ -298,9 +305,9 @@ test_last_unset_before_first_set(void)
 {
         setUp();
 
-        TEST_ASSERT(status_last_fault()   == STATUS_UNSET_ID);
+        TEST_ASSERT(status_last_fault() == STATUS_UNSET_ID);
         TEST_ASSERT(status_last_warning() == STATUS_UNSET_ID);
-        TEST_ASSERT(status_last_info()    == STATUS_UNSET_ID);
+        TEST_ASSERT(status_last_info() == STATUS_UNSET_ID);
 
         TEST_PASS(__func__);
 }
@@ -336,8 +343,8 @@ test_err_cb_invalid_bank(void)
         uint16_t bad_id = STATUS_ENCODE((uint16_t)NUM_STATUS_BANKS, 0u);
         status_set_fault(bad_id);
 
-        TEST_ASSERT(g_err_count   == 1u);
-        TEST_ASSERT(g_last_err    == STATUS_ERR_INVALID_BANK);
+        TEST_ASSERT(g_err_count == 1u);
+        TEST_ASSERT(g_last_err == STATUS_ERR_INVALID_BANK);
         TEST_ASSERT(g_last_err_id == bad_id);
         TEST_ASSERT(status_any(STATUS_CLASS_FAULT) == false);
 
@@ -406,10 +413,10 @@ test_snapshot_captures_state(void)
 
         /* Both IDs reside in bank 0 — verify the captured word. */
         uint16_t bank0_expect =
-                (uint16_t)(((uint32_t)1u
-                            << (uint32_t)status_bit(STATUS_ID_FAULT_OVERCURRENT)) |
-                           ((uint32_t)1u
-                            << (uint32_t)status_bit(STATUS_ID_FAULT_OVERVOLTAGE)));
+            (uint16_t)(((uint32_t)1u
+                        << (uint32_t)status_bit(STATUS_ID_FAULT_OVERCURRENT))
+                       | ((uint32_t)1u << (uint32_t)status_bit(
+                              STATUS_ID_FAULT_OVERVOLTAGE)));
         TEST_ASSERT((snap[0] & bank0_expect) == bank0_expect);
         TEST_ASSERT(g_err_count == 0u);
 
@@ -427,7 +434,7 @@ test_snapshot_null_dst(void)
         status_snapshot(STATUS_CLASS_FAULT, NULL, NUM_STATUS_BANKS);
 
         TEST_ASSERT(g_err_count == 1u);
-        TEST_ASSERT(g_last_err  == STATUS_ERR_NULL_PTR);
+        TEST_ASSERT(g_last_err == STATUS_ERR_NULL_PTR);
 
         TEST_PASS(__func__);
 }
@@ -444,7 +451,7 @@ test_snapshot_zero_len(void)
         status_snapshot(STATUS_CLASS_FAULT, snap, 0u);
 
         TEST_ASSERT(g_err_count == 1u);
-        TEST_ASSERT(g_last_err  == STATUS_ERR_NULL_PTR);
+        TEST_ASSERT(g_last_err == STATUS_ERR_NULL_PTR);
 
         TEST_PASS(__func__);
 }
@@ -459,16 +466,16 @@ test_class_isolation(void)
 
         status_set_fault(STATUS_ID_FAULT_OVERCURRENT);
         TEST_ASSERT(status_any(STATUS_CLASS_WARNING) == false);
-        TEST_ASSERT(status_any(STATUS_CLASS_INFO)    == false);
+        TEST_ASSERT(status_any(STATUS_CLASS_INFO) == false);
         status_clear_all(STATUS_CLASS_FAULT);
 
         status_set_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
         TEST_ASSERT(status_any(STATUS_CLASS_FAULT) == false);
-        TEST_ASSERT(status_any(STATUS_CLASS_INFO)  == false);
+        TEST_ASSERT(status_any(STATUS_CLASS_INFO) == false);
         status_clear_all(STATUS_CLASS_WARNING);
 
         status_set_info(STATUS_ID_INFO_AC_LIVE);
-        TEST_ASSERT(status_any(STATUS_CLASS_FAULT)   == false);
+        TEST_ASSERT(status_any(STATUS_CLASS_FAULT) == false);
         TEST_ASSERT(status_any(STATUS_CLASS_WARNING) == false);
 
         TEST_PASS(__func__);
@@ -482,9 +489,9 @@ test_any_false_after_init(void)
 {
         setUp();
 
-        TEST_ASSERT(status_any(STATUS_CLASS_FAULT)   == false);
+        TEST_ASSERT(status_any(STATUS_CLASS_FAULT) == false);
         TEST_ASSERT(status_any(STATUS_CLASS_WARNING) == false);
-        TEST_ASSERT(status_any(STATUS_CLASS_INFO)    == false);
+        TEST_ASSERT(status_any(STATUS_CLASS_INFO) == false);
 
         TEST_PASS(__func__);
 }
@@ -497,8 +504,8 @@ test_multi_bit_multi_bank(void)
 {
         setUp();
 
-        status_set_fault(STATUS_ID_FAULT_OVERCURRENT);   /* bank 0, bit 0 */
-        status_set_fault(STATUS_ID_FAULT_CAN_TIMEOUT);   /* bank 2, bit 0 */
+        status_set_fault(STATUS_ID_FAULT_OVERCURRENT); /* bank 0, bit 0 */
+        status_set_fault(STATUS_ID_FAULT_CAN_TIMEOUT); /* bank 2, bit 0 */
 
         TEST_ASSERT(status_is_fault_set(STATUS_ID_FAULT_OVERCURRENT) == true);
         TEST_ASSERT(status_is_fault_set(STATUS_ID_FAULT_CAN_TIMEOUT) == true);
@@ -506,6 +513,29 @@ test_multi_bit_multi_bank(void)
         status_clear_fault(STATUS_ID_FAULT_OVERCURRENT);
         TEST_ASSERT(status_is_fault_set(STATUS_ID_FAULT_OVERCURRENT) == false);
         TEST_ASSERT(status_is_fault_set(STATUS_ID_FAULT_CAN_TIMEOUT) == true);
+
+        TEST_PASS(__func__);
+}
+
+/*
+ * Verify that status_init properly resets all last_*_id trackers.
+ */
+static void
+test_init_resets_last_ids(void)
+{
+        status_set_fault(STATUS_ID_FAULT_OVERCURRENT);
+        status_set_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
+        status_set_info(STATUS_ID_INFO_AC_LIVE);
+
+        TEST_ASSERT(status_last_fault() == STATUS_ID_FAULT_OVERCURRENT);
+        TEST_ASSERT(status_last_warning() == STATUS_ID_WARN_TEMP_NEAR_LIMIT);
+        TEST_ASSERT(status_last_info() == STATUS_ID_INFO_AC_LIVE);
+
+        status_init();
+
+        TEST_ASSERT(status_last_fault() == STATUS_UNSET_ID);
+        TEST_ASSERT(status_last_warning() == STATUS_UNSET_ID);
+        TEST_ASSERT(status_last_info() == STATUS_UNSET_ID);
 
         TEST_PASS(__func__);
 }
@@ -547,6 +577,8 @@ main(void)
         test_class_isolation();
         test_any_false_after_init();
         test_multi_bit_multi_bank();
+
+        test_init_resets_last_ids();
 
         fprintf(stdout, "\nAll tests passed.\n");
         return EXIT_SUCCESS;

@@ -10,9 +10,18 @@
 #ifndef STATUS_H
 #define STATUS_H
 
+/* Add C bindings if being compiled with C++ compiler */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ================ INCLUDES ================================================ */
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+/* ================ DEFINES ================================================= */
 
 /* ---------------  Configuration ------------------------------------------- */
 
@@ -67,7 +76,8 @@
 #define STATUS_EXIT_CRITICAL()
 #endif
 
-/* ---------------  Structures ---------------------------------------------- */
+/* ================ STRUCTURES ============================================== */
+
 /**
  * @brief Status class for categorization.
  */
@@ -76,6 +86,8 @@ enum status_class {
         STATUS_CLASS_WARNING = 1,
         STATUS_CLASS_INFO = 2,
 };
+
+/* ================ TYPEDEFS ================================================ */
 
 /**
  * @brief Error types for status_err_callback.
@@ -92,7 +104,7 @@ typedef enum {
  */
 typedef void (*status_err_cb_t)(status_err_t err, uint16_t id);
 
-/* --------------- Compile-time Helpers ------------------------------------- */
+/* ================ MACROS ================================================== */
 
 /**
  * @def STATUS_ENCODE
@@ -119,7 +131,9 @@ typedef void (*status_err_cb_t)(status_err_t err, uint16_t id);
 #define STATUS_ENCODE(bank, bit)                                               \
         ((uint16_t)(((uint32_t)(bank) << 4u) | ((uint32_t)(bit) & 0x0Fu)))
 
-/* ---------------  Run-time Helpers ---------------------------------------- */
+/* ================ GLOBAL VARIABLES ======================================== */
+
+/* ================ GLOBAL PROTOTYPES ======================================= */
 
 /**
  * @brief Extracts the bank number from an encoded status ID.
@@ -147,10 +161,8 @@ status_bit(uint16_t id)
         return (uint16_t)(id & 0x0Fu);
 }
 
-/* ---------------  Public Interface ---------------------------------------- */
-
 /**
- * @brief Initialize the status module.
+ * @brief Initialise the status module.
  */
 void status_init(void);
 
@@ -260,5 +272,10 @@ uint16_t status_last_info(void);
  * @param len       Number of entries to write (must match NUM_STATUS_BANKS).
  */
 void status_snapshot(enum status_class cls, uint16_t *dst, size_t len);
+
+/* End of C bindings for C++ compilers */
+#ifdef __cplusplus
+}
+#endif
 
 #endif // STATUS_H
