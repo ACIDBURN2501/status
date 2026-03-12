@@ -35,6 +35,8 @@ configure_file(
 
 public_headers = include_directories('include')
 
+install_headers('include/status.h', subdir: 'status')
+
 # ── Application core library ───────────────────────────────────────────────────
 # Hardware-agnostic application logic.  Linked by both the application
 # executable and the unit-test suite (which supplies its own platform mocks).
@@ -51,6 +53,16 @@ status_lib = static_library(
 status_dep = declare_dependency(
   include_directories: public_headers,
   link_with: status_lib,
+)
+
+# ── pkg-config ─────────────────────────────────────────────────────────────────
+
+pkgconfig = import('pkgconfig')
+pkgconfig.generate(
+  status_lib,
+  name: 'status',
+  description: 'Lightweight C11 banked-bitfield status register library for embedded systems',
+  subdirs: 'status',
 )
 
 # ── Host unit tests ────────────────────────────────────────────────────────────
