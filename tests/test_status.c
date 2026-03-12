@@ -9,6 +9,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* Provide no-op critical sections for host-side testing. */
+#define STATUS_ENTER_CRITICAL()
+#define STATUS_EXIT_CRITICAL()
+
 #include "status.h"
 #include "status_ids.h"
 
@@ -106,57 +110,6 @@ test_info_set_and_clear(void)
 
         status_clear_info(STATUS_ID_INFO_AC_LIVE);
         TEST_ASSERT(status_is_info_set(STATUS_ID_INFO_AC_LIVE) == false);
-
-        TEST_PASS(__func__);
-}
-
-static void
-test_toggle_fault(void)
-{
-        setUp();
-
-        TEST_ASSERT(status_is_fault_set(STATUS_ID_FAULT_OVERCURRENT) == false);
-
-        status_toggle_fault(STATUS_ID_FAULT_OVERCURRENT);
-        TEST_ASSERT(status_is_fault_set(STATUS_ID_FAULT_OVERCURRENT) == true);
-
-        status_toggle_fault(STATUS_ID_FAULT_OVERCURRENT);
-        TEST_ASSERT(status_is_fault_set(STATUS_ID_FAULT_OVERCURRENT) == false);
-
-        TEST_PASS(__func__);
-}
-
-static void
-test_toggle_warn(void)
-{
-        setUp();
-
-        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT)
-                    == false);
-
-        status_toggle_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
-        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT)
-                    == true);
-
-        status_toggle_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
-        TEST_ASSERT(status_is_warning_set(STATUS_ID_WARN_TEMP_NEAR_LIMIT)
-                    == false);
-
-        TEST_PASS(__func__);
-}
-
-static void
-test_toggle_info(void)
-{
-        setUp();
-
-        TEST_ASSERT(status_is_info_set(STATUS_ID_INFO_CAN_ACTIVE) == false);
-
-        status_toggle_info(STATUS_ID_INFO_CAN_ACTIVE);
-        TEST_ASSERT(status_is_info_set(STATUS_ID_INFO_CAN_ACTIVE) == true);
-
-        status_toggle_info(STATUS_ID_INFO_CAN_ACTIVE);
-        TEST_ASSERT(status_is_info_set(STATUS_ID_INFO_CAN_ACTIVE) == false);
 
         TEST_PASS(__func__);
 }
@@ -313,25 +266,6 @@ test_last_unset_before_first_set(void)
 }
 
 /*
- * toggle clear→set must update last_*; toggle set→clear must not.
- */
-static void
-test_toggle_updates_last_on_set(void)
-{
-        setUp();
-
-        /* clear → set: last_fault updated */
-        status_toggle_fault(STATUS_ID_FAULT_OVERCURRENT);
-        TEST_ASSERT(status_last_fault() == STATUS_ID_FAULT_OVERCURRENT);
-
-        /* set → clear: last_fault unchanged */
-        status_toggle_fault(STATUS_ID_FAULT_OVERCURRENT);
-        TEST_ASSERT(status_last_fault() == STATUS_ID_FAULT_OVERCURRENT);
-
-        TEST_PASS(__func__);
-}
-
-/*
  * Passing an out-of-range bank must fire the error callback with
  * STATUS_ERR_INVALID_BANK and leave the register unchanged.
  */
@@ -362,10 +296,6 @@ test_err_cb_invalid_bank_all_ops(void)
         uint16_t bad_id = STATUS_ENCODE((uint16_t)NUM_STATUS_BANKS, 0u);
 
         status_clear_fault(bad_id);
-        TEST_ASSERT(g_err_count == 1u);
-        reset_err_state();
-
-        status_toggle_fault(bad_id);
         TEST_ASSERT(g_err_count == 1u);
         reset_err_state();
 
@@ -440,7 +370,7 @@ test_snapshot_null_dst(void)
 }
 
 /*
- * snapshot with zero length must fire the error callback.
+ * snapshot with zero length must fire STATUS_ERR_INVALID_LEN (not NULL_PTR).
  */
 static void
 test_snapshot_zero_len(void)
@@ -451,7 +381,67 @@ test_snapshot_zero_len(void)
         status_snapshot(STATUS_CLASS_FAULT, snap, 0u);
 
         TEST_ASSERT(g_err_count == 1u);
+        TEST_ASSERT(g_last_err == STATUS_ERR_INVALID_LEN);
+
+        TEST_PASS(__func__);
+}
+
+/*
+ * snapshot with an invalid class must fire STATUS_ERR_INVALID_ID and not crash.
+ */
+static void
+test_snapshot_invalid_class(void)
+{
+        setUp();
+
+        uint16_t snap[NUM_STATUS_BANKS];
+        status_snapshot((enum status_class)99, snap, NUM_STATUS_BANKS);
+
+        TEST_ASSERT(g_err_count == 1u);
+        TEST_ASSERT(g_last_err == STATUS_ERR_INVALID_ID);
+
+        TEST_PASS(__func__);
+}
+
+/*
+ * zero-length and null-dst must produce distinct error codes.
+ */
+static void
+test_snapshot_error_codes_distinct(void)
+{
+        setUp();
+
+        uint16_t snap[NUM_STATUS_BANKS];
+
+        /* NULL dst → STATUS_ERR_NULL_PTR */
+        status_snapshot(STATUS_CLASS_FAULT, NULL, NUM_STATUS_BANKS);
         TEST_ASSERT(g_last_err == STATUS_ERR_NULL_PTR);
+        reset_err_state();
+
+        /* len == 0 → STATUS_ERR_INVALID_LEN */
+        status_snapshot(STATUS_CLASS_FAULT, snap, 0u);
+        TEST_ASSERT(g_last_err == STATUS_ERR_INVALID_LEN);
+
+        TEST_PASS(__func__);
+}
+
+/*
+ * status_init() must preserve the registered error callback so that errors
+ * arising during re-initialisation are still reported.
+ */
+static void
+test_init_preserves_err_cb(void)
+{
+        setUp(); /* registers test_err_cb */
+
+        status_init();
+
+        /* callback should still be active after re-init */
+        uint16_t bad_id = STATUS_ENCODE((uint16_t)NUM_STATUS_BANKS, 0u);
+        status_set_fault(bad_id);
+
+        TEST_ASSERT(g_err_count == 1u);
+        TEST_ASSERT(g_last_err == STATUS_ERR_INVALID_BANK);
 
         TEST_PASS(__func__);
 }
@@ -564,6 +554,113 @@ test_init_resets_last_ids(void)
         TEST_PASS(__func__);
 }
 
+/*
+ * status_snapshot with len > NUM_STATUS_BANKS must cap the copy at
+ * NUM_STATUS_BANKS and not fire the error callback.
+ */
+static void
+test_snapshot_oversized_len(void)
+{
+        setUp();
+
+        uint16_t snap[NUM_STATUS_BANKS + 8u];
+        status_set_fault(STATUS_ID_FAULT_OVERCURRENT);
+
+        status_snapshot(STATUS_CLASS_FAULT, snap, NUM_STATUS_BANKS + 8u);
+
+        TEST_ASSERT(g_err_count == 0u);
+        uint16_t expect = (uint16_t)((uint32_t)1u
+                          << (uint32_t)status_bit(STATUS_ID_FAULT_OVERCURRENT));
+        TEST_ASSERT((snap[0] & expect) == expect);
+
+        TEST_PASS(__func__);
+}
+
+/*
+ * status_clear_all must NOT reset the last-set ID tracker; the audit trail is
+ * preserved until status_init() is called.
+ */
+static void
+test_clear_all_preserves_last_id(void)
+{
+        setUp();
+
+        status_set_fault(STATUS_ID_FAULT_OVERCURRENT);
+        status_set_warning(STATUS_ID_WARN_TEMP_NEAR_LIMIT);
+        status_set_info(STATUS_ID_INFO_AC_LIVE);
+
+        status_clear_all(STATUS_CLASS_FAULT);
+        status_clear_all(STATUS_CLASS_WARNING);
+        status_clear_all(STATUS_CLASS_INFO);
+
+        TEST_ASSERT(status_any(STATUS_CLASS_FAULT) == false);
+        TEST_ASSERT(status_any(STATUS_CLASS_WARNING) == false);
+        TEST_ASSERT(status_any(STATUS_CLASS_INFO) == false);
+
+        TEST_ASSERT(status_last_fault() == STATUS_ID_FAULT_OVERCURRENT);
+        TEST_ASSERT(status_last_warning() == STATUS_ID_WARN_TEMP_NEAR_LIMIT);
+        TEST_ASSERT(status_last_info() == STATUS_ID_INFO_AC_LIVE);
+
+        TEST_PASS(__func__);
+}
+
+/*
+ * status_clear_fault must NOT reset last_fault_id.
+ */
+static void
+test_clear_fault_preserves_last_id(void)
+{
+        setUp();
+
+        status_set_fault(STATUS_ID_FAULT_OVERCURRENT);
+        status_clear_fault(STATUS_ID_FAULT_OVERCURRENT);
+
+        TEST_ASSERT(status_is_fault_set(STATUS_ID_FAULT_OVERCURRENT) == false);
+        TEST_ASSERT(status_last_fault() == STATUS_ID_FAULT_OVERCURRENT);
+
+        TEST_PASS(__func__);
+}
+
+/*
+ * Passing NULL to status_set_err_callback deregisters the callback; subsequent
+ * errors must not reach the old handler.
+ */
+static void
+test_null_callback_deregisters(void)
+{
+        setUp(); /* registers test_err_cb */
+
+        status_set_err_callback(NULL);
+
+        uint16_t bad_id = STATUS_ENCODE((uint16_t)NUM_STATUS_BANKS, 0u);
+        status_set_fault(bad_id);
+
+        TEST_ASSERT(g_err_count == 0u);
+
+        TEST_PASS(__func__);
+}
+
+/*
+ * last_*_id reflects the most recently set ID; re-setting an older ID
+ * overwrites the tracker (most-recent-wins).
+ */
+static void
+test_last_id_most_recent_wins(void)
+{
+        setUp();
+
+        status_set_fault(STATUS_ID_FAULT_OVERCURRENT);
+        TEST_ASSERT(status_last_fault() == STATUS_ID_FAULT_OVERCURRENT);
+
+        status_set_fault(STATUS_ID_FAULT_OVERVOLTAGE);
+        TEST_ASSERT(status_last_fault() == STATUS_ID_FAULT_OVERVOLTAGE);
+
+        status_set_fault(STATUS_ID_FAULT_OVERCURRENT);
+        TEST_ASSERT(status_last_fault() == STATUS_ID_FAULT_OVERCURRENT);
+
+        TEST_PASS(__func__);
+}
+
 /* ------------------------------------------------------------------ */
 /* Main                                                                  */
 /* ------------------------------------------------------------------ */
@@ -575,9 +672,6 @@ main(void)
         test_fault_set_and_clear();
         test_warn_set_and_clear();
         test_info_set_and_clear();
-        test_toggle_warn();
-        test_toggle_fault();
-        test_toggle_info();
         test_is_warn_set();
         test_is_fault_set();
         test_is_info_set();
@@ -591,19 +685,25 @@ main(void)
 
         /* New tests */
         test_last_unset_before_first_set();
-        test_toggle_updates_last_on_set();
         test_err_cb_invalid_bank();
         test_err_cb_invalid_bank_all_ops();
         test_boundary_ids_valid();
         test_snapshot_captures_state();
         test_snapshot_null_dst();
         test_snapshot_zero_len();
+        test_snapshot_invalid_class();
+        test_snapshot_error_codes_distinct();
         test_class_isolation();
         test_any_false_after_init();
         test_invalid_class_ops();
         test_multi_bit_multi_bank();
-
         test_init_resets_last_ids();
+        test_init_preserves_err_cb();
+        test_snapshot_oversized_len();
+        test_clear_all_preserves_last_id();
+        test_clear_fault_preserves_last_id();
+        test_null_callback_deregisters();
+        test_last_id_most_recent_wins();
 
         fprintf(stdout, "\nAll tests passed.\n");
         return EXIT_SUCCESS;

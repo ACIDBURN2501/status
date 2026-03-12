@@ -10,7 +10,7 @@
  * @note
  *    All status IDs must be encoded using STATUS_ENCODE(bank, bit),
  *    where bank < NUM_STATUS_BANKS and bit < 16. Violating this is undefined.
- *    Validity is enforced via runtime assertions and unit tests.
+ *    Validity is enforced via runtime error callbacks and unit tests.
  */
 
 #ifndef STATUS_IDS_H

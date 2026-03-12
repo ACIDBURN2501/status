@@ -11,7 +11,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "status.h"
 
@@ -30,9 +29,9 @@ _Static_assert(NUM_STATUS_BANKS <= 4095u,
 
 /*
  * NUM_STATUS_BITS is fixed at 16 to match the uint16_t bank storage type.
- * status_bit() always returns a value in 0..15, so the bit-range check in
- * set/clear/toggle/query is an unreachable defensive guard that documents
- * the invariant.
+ * status_bit() always returns a value in 0..15, guaranteed by the 4-bit mask
+ * in STATUS_ENCODE and the extraction in status_bit(). No runtime bit-range
+ * check is needed.
  */
 _Static_assert(NUM_STATUS_BITS == 16u,
                "NUM_STATUS_BITS must equal the width of the bank storage type "
@@ -123,7 +122,7 @@ set_bit(uint16_t id, enum status_class cls)
                 uint16_t bit = status_bit(id);
 
                 STATUS_ENTER_CRITICAL();
-                b[bank] |= (uint16_t)((uint32_t)1u << (uint32_t)bit);
+                b[bank] = (uint16_t)(b[bank] | (uint16_t)((uint32_t)1u << (uint32_t)bit));
                 switch (cls) {
                 case STATUS_CLASS_FAULT: last_fault_id = id; break;
                 case STATUS_CLASS_WARNING: last_warning_id = id; break;
@@ -148,36 +147,7 @@ clear_bit(uint16_t id, enum status_class cls)
                 uint16_t bit = status_bit(id);
 
                 STATUS_ENTER_CRITICAL();
-                b[bank] &= (uint16_t)~((uint32_t)1u << (uint32_t)bit);
-                STATUS_EXIT_CRITICAL();
-        }
-}
-
-static void
-toggle_bit(uint16_t id, enum status_class cls)
-{
-        uint16_t bank = status_bank(id);
-        volatile uint16_t *b = get_banks_mut(cls);
-
-        if (bank >= NUM_STATUS_BANKS) {
-                invoke_err_cb(STATUS_ERR_INVALID_BANK, id);
-        } else if (b == NULL) {
-                invoke_err_cb(STATUS_ERR_INVALID_ID, id);
-        } else {
-                uint16_t bit = status_bit(id);
-                uint16_t mask = (uint16_t)((uint32_t)1u << (uint32_t)bit);
-
-                STATUS_ENTER_CRITICAL();
-                b[bank] ^= mask;
-                if ((b[bank] & mask) != 0u) {
-                        /* bit toggled to set -> record as last active */
-                        switch (cls) {
-                        case STATUS_CLASS_FAULT: last_fault_id = id; break;
-                        case STATUS_CLASS_WARNING: last_warning_id = id; break;
-                        case STATUS_CLASS_INFO: last_info_id = id; break;
-                        default: break;
-                        }
-                }
+                b[bank] = (uint16_t)(b[bank] & (uint16_t)(0xFFFFu ^ (uint16_t)((uint32_t)1u << (uint32_t)bit)));
                 STATUS_EXIT_CRITICAL();
         }
 }
@@ -264,24 +234,6 @@ void
 status_clear_info(uint16_t id)
 {
         clear_bit(id, STATUS_CLASS_INFO);
-}
-
-void
-status_toggle_warning(uint16_t id)
-{
-        toggle_bit(id, STATUS_CLASS_WARNING);
-}
-
-void
-status_toggle_fault(uint16_t id)
-{
-        toggle_bit(id, STATUS_CLASS_FAULT);
-}
-
-void
-status_toggle_info(uint16_t id)
-{
-        toggle_bit(id, STATUS_CLASS_INFO);
 }
 
 bool
@@ -371,8 +323,12 @@ status_snapshot(enum status_class cls, uint16_t *dst, size_t len)
 {
         const volatile uint16_t *src = get_banks_ro(cls);
 
-        if ((src == NULL) || (dst == NULL) || (len == 0u)) {
+        if (src == NULL) {
+                invoke_err_cb(STATUS_ERR_INVALID_ID, STATUS_UNSET_ID);
+        } else if (dst == NULL) {
                 invoke_err_cb(STATUS_ERR_NULL_PTR, STATUS_UNSET_ID);
+        } else if (len == 0u) {
+                invoke_err_cb(STATUS_ERR_INVALID_LEN, STATUS_UNSET_ID);
         } else {
                 const size_t copy_len = size_min(len, NUM_STATUS_BANKS);
 

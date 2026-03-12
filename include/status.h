@@ -65,6 +65,7 @@ extern "C" {
  * @note Must be defined by the user for thread-safe operation.
  */
 #ifndef STATUS_ENTER_CRITICAL
+#warning "STATUS_ENTER_CRITICAL not defined; library is NOT interrupt-safe"
 #define STATUS_ENTER_CRITICAL()
 #endif
 
@@ -73,6 +74,7 @@ extern "C" {
  * @note Must be defined by the user for thread-safe operation.
  */
 #ifndef STATUS_EXIT_CRITICAL
+#warning "STATUS_EXIT_CRITICAL not defined; library is NOT interrupt-safe"
 #define STATUS_EXIT_CRITICAL()
 #endif
 
@@ -93,10 +95,10 @@ enum status_class {
  * @brief Error types for status_err_callback.
  */
 typedef enum {
-        STATUS_ERR_INVALID_ID = 0,
-        STATUS_ERR_INVALID_BANK,
-        STATUS_ERR_INVALID_BIT,
-        STATUS_ERR_NULL_PTR
+        STATUS_ERR_INVALID_ID = 0, /**< Unrecognised status_class value */
+        STATUS_ERR_INVALID_BANK,   /**< Bank index >= NUM_STATUS_BANKS */
+        STATUS_ERR_INVALID_LEN,    /**< Zero-length argument to snapshot */
+        STATUS_ERR_NULL_PTR        /**< NULL pointer argument */
 } status_err_t;
 
 /**
@@ -119,14 +121,17 @@ typedef void (*status_err_cb_t)(status_err_t err, uint16_t id);
  * @details
  *    Each bank is assumed to store 16 bits. This macro encodes a `bank` and
  *    `bit` index into a compact 16-bit ID used for indexing status registers.
- *    The result can be passed to `status_set_fault()`, `status_clear_warn()`,
- *    etc.
+ *    The result can be passed to `status_set_fault()`,
+ * `status_clear_warning()`, etc.
  *
  * @return          A compact 16-bit status ID, suitable for use in the
  *                  `status` module.
  *
  * @note
- *    The maximum bit index is 15. Higher values are masked off.
+ *    The maximum bit index is 15. Higher values are masked off automatically.
+ *    The bank value is NOT masked; passing a value >= 4096 will silently
+ *    truncate on the cast to uint16_t. Callers must ensure bank <
+ * NUM_STATUS_BANKS.
  */
 #define STATUS_ENCODE(bank, bit)                                               \
         ((uint16_t)(((uint32_t)(bank) << 4u) | ((uint32_t)(bit) & 0x0Fu)))
@@ -163,13 +168,19 @@ status_bit(uint16_t id)
 
 /**
  * @brief Initialise the status module.
+ *
+ * @note Clears all register banks and resets the last-set ID trackers for
+ *       every class. The registered error callback is intentionally preserved
+ *       so that errors occurring during re-initialisation are still reported.
  */
 void status_init(void);
 
 /**
  * @brief Set a callback for handling errors (e.g. invalid IDs).
  *
- * @param cb        Function pointer to the error handler.
+ * @param cb        Function pointer to the error handler. Pass NULL to
+ *                  deregister the current callback; subsequent errors will be
+ *                  silently ignored until a new callback is registered.
  */
 void status_set_err_callback(status_err_cb_t cb);
 
@@ -190,33 +201,27 @@ void status_set_info(uint16_t id);
 
 /**
  * @brief Clear the given warning status bit.
+ *
+ * @note The last-set ID tracker returned by status_last_warning() is not
+ *       modified. Call status_init() to reset it.
  */
 void status_clear_warning(uint16_t id);
 
 /**
  * @brief Clear the given fault status bit.
+ *
+ * @note The last-set ID tracker returned by status_last_fault() is not
+ *       modified. Call status_init() to reset it.
  */
 void status_clear_fault(uint16_t id);
 
 /**
  * @brief Clear the given info status bit.
+ *
+ * @note The last-set ID tracker returned by status_last_info() is not
+ *       modified. Call status_init() to reset it.
  */
 void status_clear_info(uint16_t id);
-
-/**
- * @brief Toggle the given warning status bit.
- */
-void status_toggle_warning(uint16_t id);
-
-/**
- * @brief Toggle the given fault status bit.
- */
-void status_toggle_fault(uint16_t id);
-
-/**
- * @brief Toggle the given info status bit.
- */
-void status_toggle_info(uint16_t id);
 
 /**
  * @brief Check whether a given warning status bit is set.
@@ -229,17 +234,25 @@ bool status_is_warning_set(uint16_t id);
 bool status_is_fault_set(uint16_t id);
 
 /**
- * @brief Check whether a given info status bit it set.
+ * @brief Check whether a given info status bit is set.
  */
 bool status_is_info_set(uint16_t id);
 
 /**
  * @brief Check whether any bit in the given class is set.
+ *
+ * @note Holds the critical section for the duration of the bank scan
+ *       (O(NUM_STATUS_BANKS) with early exit). Keep NUM_STATUS_BANKS small
+ *       if this is called from time-critical contexts.
  */
 bool status_any(enum status_class cls);
 
 /**
  * @brief Clear all bits in the given class.
+ *
+ * @note The last-set ID tracker for the class (e.g. status_last_fault()) is
+ *       not modified; it preserves the audit trail of the most recently set
+ *       ID. Call status_init() to reset all trackers.
  */
 void status_clear_all(enum status_class cls);
 
@@ -269,8 +282,12 @@ uint16_t status_last_info(void);
  *
  * @param cls       The class of status.
  * @param dst       Destination array with space for at least `len` entries.
- * @param len       Number of bank entries to copy. Copies up to
- *                  `NUM_STATUS_BANKS` entries; passing 0 reports an error.
+ * @param len       Number of bank entries to copy; capped at NUM_STATUS_BANKS.
+ *
+ * @note On error the callback is invoked and no copy is performed:
+ *       - Invalid cls          → STATUS_ERR_INVALID_ID
+ *       - NULL dst             → STATUS_ERR_NULL_PTR
+ *       - len == 0             → STATUS_ERR_INVALID_LEN
  */
 void status_snapshot(enum status_class cls, uint16_t *dst, size_t len);
 
@@ -279,4 +296,4 @@ void status_snapshot(enum status_class cls, uint16_t *dst, size_t len);
 }
 #endif
 
-#endif // STATUS_H
+#endif /* STATUS_H */
